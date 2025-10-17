@@ -1,0 +1,205 @@
+/* ===== College of the Redwoods Theme ===== */
+:root{
+    --primary-color: rgb(142, 0, 28);
+    --primary-alpha: rgba(142, 0, 28, 0.80); /* provided main */
+    --secondary-color: rgb(230, 223, 218);
+    --tertiary-color: rgb(16, 124, 111);
+    --default-grey: #222;
+
+    --ink-strong: #111;                  /* headings on light */
+    --ink: #212427;                      /* body text on light */
+    --ink-muted: #5b636a;
+    --surface: #fff;                     /* cards/panels */
+    --surface-alt: #f6f3f1;              /* subtle bg panels */
+
+    --map-bg: #faf7f6;
+
+    --default-animation: 0.25s all;
+
+    --icon-font-family: "NerdFontsSymbols Nerd Font";
+    --heading-font-family: "Merriweather", serif;
+    --default-font-family: "Lato", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* Typography */
+@media (prefers-reduced-motion:no-preference){
+    :root{ scroll-behavior:smooth; }
+}
+*{ box-sizing:border-box; }
+html, body, #map{ height:100%; }
+body{
+    margin:0;
+    background: var(--surface-alt);
+    color: var(--ink);
+    font-family: var(--default-font-family);
+    line-height: 1.45;
+}
+
+/* Header */
+header.appbar{
+    position: sticky; top:0; z-index: 1000;
+    display:flex; align-items:center; gap:.75rem;
+    padding:.6rem 1rem;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-alpha));
+    color: #fff;
+    border-bottom: 3px solid #8e001c;
+}
+.appbar .brand{
+    display:flex; align-items:center; gap:.6rem;
+}
+.appbar .brand img{
+    height:36px; width:auto; display:block; filter: drop-shadow(0 1px 0 rgba(0,0,0,.25));
+}
+.appbar h1{
+    margin:0; font-size:1.1rem; letter-spacing:.2px; font-weight:700; font-family: var(--heading-font-family);
+}
+.appbar .actions{
+    margin-left:auto; display:flex; gap:.5rem; align-items:center;
+}
+.appbar input[type="password"]{
+    width:200px; max-width:38vw;
+    padding:.45rem .6rem; border-radius:.5rem; border:1px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.15); color:#fff;
+}
+.appbar input::placeholder{ color: rgba(255,255,255,.9); }
+
+/* Buttons */
+button, .btn{
+    appearance:none; cursor:pointer;
+    border-radius:.6rem; padding:.5rem .8rem; font-weight:600;
+    border:1px solid #7f001a; color:#fff; background: var(--primary-color);
+    transition: var(--default-animation);
+}
+button:hover, .btn:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+button.secondary, .btn.secondary{
+    background: var(--tertiary-color); border-color: #0e6f64;
+}
+button.ghost, .btn.ghost{
+    background: transparent; color:#fff; border-color: rgba(255,255,255,.65);
+}
+a.btn{ text-decoration:none; }
+
+/* Badges / toasts */
+.badge{ font-size:.82rem; padding:.15rem .4rem; border-radius:.4rem; background: rgba(255,255,255,.15); color:#fff; }
+footer.toasts{ position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:.5rem; z-index:1001; }
+.toast{ background:#ffffff; color:var(--ink); border:1px solid #e6dad6; padding:.5rem .75rem; border-radius:.6rem; }
+
+/* Map + Sidebar */
+#map{ background: var(--map-bg); }
+
+.sidebar{
+    position:absolute; top:78px; left:10px; width:330px; max-width:90vw;
+    background: var(--surface); color: var(--ink);
+    border:1px solid #e6dad6; border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08); z-index:999; overflow:hidden;
+}
+.sidebar header{ padding:.65rem .8rem; background: var(--secondary-color); }
+.sidebar main{ padding:.8rem; max-height: 60vh; overflow:auto; }
+fieldset{ border:1px solid #e6dad6; border-radius:10px; padding:.55rem .75rem; margin: .6rem 0; background:#fff; }
+legend{ color: var(--ink-muted); font-size:.9rem; padding: 0 .4rem; }
+label{ display:block; font-size:.9rem; color: var(--ink-muted); margin:.25rem 0 .15rem; }
+input, select{
+    width:100%; padding:.45rem .6rem; background:#fff; border:1px solid #d7c9c4; color:var(--ink); border-radius:.5rem;
+}
+
+/* Leaflet theming */
+.leaflet-container{ background: var(--map-bg); font-family: var(--default-font-family); }
+.leaflet-bar a, .leaflet-bar a:hover{
+    background: #fff; color: var(--primary-color); border-color: #e6dad6;
+}
+.leaflet-draw-toolbar a{ border-color:#e6dad6; }
+.leaflet-draw-toolbar a:hover{ background: var(--secondary-color); }
+.leaflet-popup-content-wrapper{ border-radius:10px; border:1px solid #e6dad6; }
+.leaflet-control-zoom a{ color: var(--primary-color); }
+.leaflet-container a{ color: var(--tertiary-color); }
+
+/* Cards / panels */
+.card{
+    background: var(--surface); border:1px solid #e6dad6; border-radius:12px; padding:1rem;
+}
+
+/* Utilities */
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.hide-on-mobile{ display:block; }
+@media (max-width: 720px){
+    .hide-on-mobile{ display:none; }
+    .appbar h1{ font-size: .98rem; }
+    .sidebar{ top:68px; }
+}
+
+/* Color accents for map features */
+.poi{ text-shadow: 0 1px 0 rgba(255,255,255,.6); }
+/* --- Persistent helper banner ------------------------------------------------ */
+.helper-banner{
+    position: sticky; top: 64px; z-index: 1001;
+    margin: .6rem 1rem 0;
+    background: var(--secondary-color);
+    color: var(--ink-strong);
+    border: 1px solid #e6dad6;
+    border-radius: 10px;
+    padding: .55rem .8rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    font-size: .95rem;
+}
+.helper-banner b{ color: var(--primary-color); }
+
+/* --- Sidebar polish ---------------------------------------------------------- */
+.sidebar{
+    top: 120px; /* room for the helper banner + appbar */
+    width: 360px;
+}
+.sidebar header{
+    background: linear-gradient(0deg, #fff, var(--secondary-color));
+    border-bottom: 1px solid #e6dad6;
+}
+.sidebar main{ padding: .9rem; }
+fieldset{
+    background: #fff;
+    border: 1px solid #e6dad6;
+    border-radius: 12px;
+    padding: .75rem .85rem;
+}
+button, .btn{
+    border-radius: 10px;
+    padding: .55rem .9rem;
+}
+#fit-to-buildings{
+    background: var(--primary-color);
+    border-color: #7f001a;
+}
+
+/* --- Leaflet control theming (fix white-on-white) ---------------------------- */
+.leaflet-control-container .leaflet-control{
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    border: 1px solid #e6dad6;
+}
+.leaflet-control-layers{
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 10px;
+}
+.leaflet-control-layers-expanded{
+    padding: .6rem .7rem;
+}
+.leaflet-control-layers label,
+.leaflet-control-layers span{
+    color: var(--ink);
+}
+.leaflet-control-layers input[type="radio"],
+.leaflet-control-layers input[type="checkbox"]{
+    accent-color: var(--primary-color);
+}
+.leaflet-bar a, .leaflet-bar a:hover{
+    background:#fff;
+    color: var(--primary-color);
+    border-color:#e6dad6;
+}
+
+/* --- Keep controls visually offset from edges -------------------------------- */
+.leaflet-top .leaflet-control{ margin-top: 10px; }
+.leaflet-right .leaflet-control{ margin-right: 10px; }
+.leaflet-left .leaflet-control{ margin-left: 10px; }
+
+/* --- Map feature visibility at a glance -------------------------------------- */
+.poi{ text-shadow: 0 1px 0 rgba(255,255,255,.65); }
+.path-walkway { stroke: rgb(16,124,111); stroke-width: 40; }
