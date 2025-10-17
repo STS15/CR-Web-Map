@@ -1,0 +1,135 @@
+{
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -124.198629,
+            40.698651
+          ],
+          [
+            -124.198468,
+            40.698372
+          ]
+        ]
+      },
+      "properties": {
+        "type": "walkway",
+        "curved": false,
+        "control": [
+          [
+            -124.198629,
+            40.698651
+          ],
+          [
+            -124.198468,
+            40.698372
+          ]
+        ],
+        "segmented": true,
+        "segmentIndex": 0,
+        "_id": "1873cdc1-c60a-4110-bd8f-632390ed040e"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -124.198468,
+            40.698372
+          ],
+          [
+            -124.198268,
+            40.698198
+          ]
+        ]
+      },
+      "properties": {
+        "type": "walkway",
+        "curved": false,
+        "control": [
+          [
+            -124.198468,
+            40.698372
+          ],
+          [
+            -124.198268,
+            40.698198
+          ]
+        ],
+        "segmented": true,
+        "segmentIndex": 1,
+        "_id": "da4b6c74-1a8a-4aeb-aa13-83f00233c2dc"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -124.198268,
+            40.698198
+          ],
+          [
+            -124.197927,
+            40.698099
+          ]
+        ]
+      },
+      "properties": {
+        "type": "walkway",
+        "curved": false,
+        "control": [
+          [
+            -124.198268,
+            40.698198
+          ],
+          [
+            -124.197927,
+            40.698099
+          ]
+        ],
+        "segmented": true,
+        "segmentIndex": 2,
+        "_id": "e0d94799-8b30-4d0f-a470-d771ca6b18ab"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -124.198354,
+            40.69839
+          ],
+          [
+            -124.19841,
+            40.698326
+          ]
+        ]
+      },
+      "properties": {
+        "type": "walkway",
+        "curved": false,
+        "control": [
+          [
+            -124.198354,
+            40.69839
+          ],
+          [
+            -124.19841,
+            40.698326
+          ]
+        ],
+        "segmented": true,
+        "_id": "7d540ade-4255-4df8-bc5e-21c9d3e2de14"
+      }
+    }
+  ]
+}

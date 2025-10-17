@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>College of the Redwoods · Campus Map</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+    <script src="/static/js/client.js"></script>
+</head>
+<body>
+<header class="appbar">
+    <div class="brand">
+        <img src="https://www.redwoods.edu/images/CR_logo.svg" alt="College of the Redwoods logo" />
+        <h1><span class="hide-on-mobile"><%= isAdmin ? 'Admin' : 'Campus Map' %></span></h1>
+    </div>
+
+    <% if (messages && messages.success && messages.success.length) { %>
+        <span class="badge"><%= messages.success.join(", ") %></span>
+    <% } %>
+    <% if (messages && messages.error && messages.error.length) { %>
+        <span class="badge" style="background:#ffebee; color:#8e001c"><%= messages.error.join(", ") %></span>
+    <% } %>
+
+    <form action="<%= isAdmin ? '/logout' : '/login' %>" method="post" class="actions">
+        <% if (!isAdmin) { %>
+            <input name="password" type="password" placeholder="Admin password" />
+            <button type="submit" class="ghost">Login</button>
+            <a class="btn secondary" href="/admin" title="Admin">Admin</a>
+        <% } else { %>
+            <button type="submit">Logout</button>
+            <a class="btn secondary" href="/">Map</a>
+        <% } %>
+    </form>
+</header>
+
+
+<div id="map"></div>
+
+<footer class="toasts" id="toasts"></footer>
+
+<script>
+    (async function () {
+        const map = CR.initMap("map");
+        const features = await CR.fetchFeatures();
+        CR.createFeaturesLayer(features).addTo(map);
+    })();
+</script>
+</body>
+</html>

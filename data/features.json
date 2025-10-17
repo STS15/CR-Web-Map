@@ -1,0 +1,2947 @@
+{
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.197317,
+              40.698167
+            ],
+            [
+              -124.19674,
+              40.69823
+            ],
+            [
+              -124.196732,
+              40.698174
+            ],
+            [
+              -124.196552,
+              40.698195
+            ],
+            [
+              -124.196563,
+              40.698243
+            ],
+            [
+              -124.196509,
+              40.698252
+            ],
+            [
+              -124.196512,
+              40.698279
+            ],
+            [
+              -124.196333,
+              40.6983
+            ],
+            [
+              -124.196369,
+              40.698665
+            ],
+            [
+              -124.197386,
+              40.698569
+            ],
+            [
+              -124.197317,
+              40.698167
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Learning Resource Center",
+        "type": "building",
+        "_id": "399d0995-42f1-4e72-b874-3767bc17fa95"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.198294,
+              40.698369
+            ],
+            [
+              -124.198279,
+              40.6984
+            ],
+            [
+              -124.198227,
+              40.698386
+            ],
+            [
+              -124.198175,
+              40.698491
+            ],
+            [
+              -124.198141,
+              40.698474
+            ],
+            [
+              -124.197922,
+              40.698929
+            ],
+            [
+              -124.198178,
+              40.698998
+            ],
+            [
+              -124.198193,
+              40.698963
+            ],
+            [
+              -124.198264,
+              40.698985
+            ],
+            [
+              -124.198299,
+              40.698912
+            ],
+            [
+              -124.198325,
+              40.698919
+            ],
+            [
+              -124.198396,
+              40.698764
+            ],
+            [
+              -124.198448,
+              40.698777
+            ],
+            [
+              -124.198506,
+              40.698658
+            ],
+            [
+              -124.19846,
+              40.698643
+            ],
+            [
+              -124.198497,
+              40.698569
+            ],
+            [
+              -124.198471,
+              40.698556
+            ],
+            [
+              -124.198505,
+              40.698496
+            ],
+            [
+              -124.198463,
+              40.698484
+            ],
+            [
+              -124.19848,
+              40.698451
+            ],
+            [
+              -124.198426,
+              40.698437
+            ],
+            [
+              -124.19844,
+              40.698412
+            ],
+            [
+              -124.198294,
+              40.698369
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Humanities",
+        "type": "building",
+        "_id": "f6624078-160e-45c3-9530-b135157fc128"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.198798,
+              40.698706
+            ],
+            [
+              -124.198782,
+              40.69874
+            ],
+            [
+              -124.198727,
+              40.698728
+            ],
+            [
+              -124.198688,
+              40.698815
+            ],
+            [
+              -124.198673,
+              40.698812
+            ],
+            [
+              -124.198621,
+              40.698926
+            ],
+            [
+              -124.198634,
+              40.69893
+            ],
+            [
+              -124.198585,
+              40.699033
+            ],
+            [
+              -124.198635,
+              40.699045
+            ],
+            [
+              -124.198615,
+              40.699086
+            ],
+            [
+              -124.198914,
+              40.699165
+            ],
+            [
+              -124.198915,
+              40.699169
+            ],
+            [
+              -124.198998,
+              40.699191
+            ],
+            [
+              -124.199174,
+              40.698808
+            ],
+            [
+              -124.198798,
+              40.698706
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Science and Mathematics",
+        "type": "building",
+        "_id": "2397aa97-6e17-4f71-ac7a-f38fd3482d3d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.198685,
+              40.699121
+            ],
+            [
+              -124.198398,
+              40.699038
+            ],
+            [
+              -124.198346,
+              40.699153
+            ],
+            [
+              -124.198096,
+              40.699082
+            ],
+            [
+              -124.198019,
+              40.699239
+            ],
+            [
+              -124.198421,
+              40.69935
+            ],
+            [
+              -124.198366,
+              40.699462
+            ],
+            [
+              -124.198573,
+              40.699521
+            ],
+            [
+              -124.198617,
+              40.699431
+            ],
+            [
+              -124.198678,
+              40.699448
+            ],
+            [
+              -124.198802,
+              40.699188
+            ],
+            [
+              -124.198671,
+              40.699152
+            ],
+            [
+              -124.198685,
+              40.699121
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Student Union",
+        "type": "building",
+        "_id": "492e1b5f-b299-4f55-a63d-b2e02c94c00d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.198537,
+              40.698332
+            ],
+            [
+              -124.198647,
+              40.698301
+            ],
+            [
+              -124.198794,
+              40.698594
+            ],
+            [
+              -124.198833,
+              40.698582
+            ],
+            [
+              -124.198866,
+              40.698636
+            ],
+            [
+              -124.198828,
+              40.698649
+            ],
+            [
+              -124.198867,
+              40.69872
+            ],
+            [
+              -124.199156,
+              40.698636
+            ],
+            [
+              -124.199117,
+              40.698565
+            ],
+            [
+              -124.199085,
+              40.698576
+            ],
+            [
+              -124.199054,
+              40.698516
+            ],
+            [
+              -124.199085,
+              40.698506
+            ],
+            [
+              -124.198934,
+              40.698221
+            ],
+            [
+              -124.199031,
+              40.698193
+            ],
+            [
+              -124.199055,
+              40.698222
+            ],
+            [
+              -124.199222,
+              40.698172
+            ],
+            [
+              -124.199102,
+              40.69793
+            ],
+            [
+              -124.198933,
+              40.697982
+            ],
+            [
+              -124.198945,
+              40.698009
+            ],
+            [
+              -124.198842,
+              40.698039
+            ],
+            [
+              -124.198816,
+              40.697986
+            ],
+            [
+              -124.198747,
+              40.698003
+            ],
+            [
+              -124.198711,
+              40.697932
+            ],
+            [
+              -124.198619,
+              40.6979
+            ],
+            [
+              -124.198675,
+              40.697801
+            ],
+            [
+              -124.198193,
+              40.697638
+            ],
+            [
+              -124.198054,
+              40.697904
+            ],
+            [
+              -124.198532,
+              40.698069
+            ],
+            [
+              -124.198577,
+              40.698161
+            ],
+            [
+              -124.198542,
+              40.698173
+            ],
+            [
+              -124.19853,
+              40.698147
+            ],
+            [
+              -124.198457,
+              40.698168
+            ],
+            [
+              -124.198537,
+              40.698332
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Public Safety/Redwood Business Complex",
+        "type": "building",
+        "_id": "f467c422-9272-4bfe-8d4b-e9664a82f1c2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.197027,
+              40.698737
+            ],
+            [
+              -124.196775,
+              40.698761
+            ],
+            [
+              -124.196794,
+              40.698877
+            ],
+            [
+              -124.196416,
+              40.698913
+            ],
+            [
+              -124.196513,
+              40.6995
+            ],
+            [
+              -124.19677,
+              40.699475
+            ],
+            [
+              -124.196778,
+              40.699516
+            ],
+            [
+              -124.19763,
+              40.699433
+            ],
+            [
+              -124.197569,
+              40.699057
+            ],
+            [
+              -124.197502,
+              40.699061
+            ],
+            [
+              -124.197448,
+              40.698734
+            ],
+            [
+              -124.197111,
+              40.698766
+            ],
+            [
+              -124.197177,
+              40.699155
+            ],
+            [
+              -124.197034,
+              40.699172
+            ],
+            [
+              -124.196986,
+              40.698896
+            ],
+            [
+              -124.197053,
+              40.698889
+            ],
+            [
+              -124.197027,
+              40.698737
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Applied Technology",
+        "type": "building",
+        "_id": "4f38fa33-ba0d-41ed-affe-9d590ca01667"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.19632,
+              40.699879
+            ],
+            [
+              -124.196316,
+              40.699783
+            ],
+            [
+              -124.196093,
+              40.699789
+            ],
+            [
+              -124.1961,
+              40.699886
+            ],
+            [
+              -124.19632,
+              40.699879
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Academy of the Redwoods Office",
+        "type": "building",
+        "_id": "5289457b-9703-4087-aff1-74f9657e1b4c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195974,
+              40.699897
+            ],
+            [
+              -124.195967,
+              40.699623
+            ],
+            [
+              -124.195811,
+              40.699623
+            ],
+            [
+              -124.195811,
+              40.699908
+            ],
+            [
+              -124.195974,
+              40.699897
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Greenhouse",
+        "type": "building",
+        "_id": "8d55f5c2-2c8b-4d40-837c-279f960d9426"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.194301,
+              40.699582
+            ],
+            [
+              -124.194191,
+              40.699441
+            ],
+            [
+              -124.193922,
+              40.699562
+            ],
+            [
+              -124.193989,
+              40.699652
+            ],
+            [
+              -124.194156,
+              40.699581
+            ],
+            [
+              -124.194197,
+              40.699629
+            ],
+            [
+              -124.194301,
+              40.699582
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Academy of the Redwoods Classrooms",
+        "type": "building",
+        "_id": "78ff7168-9880-4b87-a8c7-6556eac4d30c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195443,
+              40.699542
+            ],
+            [
+              -124.194928,
+              40.69933
+            ],
+            [
+              -124.195025,
+              40.6992
+            ],
+            [
+              -124.195243,
+              40.699292
+            ],
+            [
+              -124.195332,
+              40.699174
+            ],
+            [
+              -124.195472,
+              40.699233
+            ],
+            [
+              -124.195387,
+              40.699352
+            ],
+            [
+              -124.195531,
+              40.699414
+            ],
+            [
+              -124.195443,
+              40.699542
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Del Norte Residence Hall",
+        "type": "building",
+        "_id": "3a2a7f50-ac73-48f5-a19d-9e28e52b1d46"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195197,
+              40.699077
+            ],
+            [
+              -124.194646,
+              40.698829
+            ],
+            [
+              -124.194735,
+              40.698717
+            ],
+            [
+              -124.19475,
+              40.698712
+            ],
+            [
+              -124.19496,
+              40.698809
+            ],
+            [
+              -124.195059,
+              40.698686
+            ],
+            [
+              -124.195114,
+              40.6987
+            ],
+            [
+              -124.19518,
+              40.69873
+            ],
+            [
+              -124.195071,
+              40.698869
+            ],
+            [
+              -124.195284,
+              40.698967
+            ],
+            [
+              -124.195197,
+              40.699077
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Mendocino Residence Hall",
+        "type": "building",
+        "_id": "fee67847-929f-4520-8bdc-9a6bff3b467a"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195329,
+              40.698613
+            ],
+            [
+              -124.195086,
+              40.698507
+            ],
+            [
+              -124.195346,
+              40.698156
+            ],
+            [
+              -124.195601,
+              40.698264
+            ],
+            [
+              -124.19558,
+              40.698292
+            ],
+            [
+              -124.195753,
+              40.698368
+            ],
+            [
+              -124.195492,
+              40.698719
+            ],
+            [
+              -124.19531,
+              40.698641
+            ],
+            [
+              -124.195329,
+              40.698613
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Student Services",
+        "type": "building",
+        "_id": "11c29f46-e93a-4dc8-94d9-76a0d0c110fd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195227,
+              40.698154
+            ],
+            [
+              -124.194964,
+              40.698076
+            ],
+            [
+              -124.194823,
+              40.698349
+            ],
+            [
+              -124.194883,
+              40.698366
+            ],
+            [
+              -124.194928,
+              40.698475
+            ],
+            [
+              -124.19504,
+              40.698508
+            ],
+            [
+              -124.195227,
+              40.698154
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Theater",
+        "type": "building",
+        "_id": "1724f989-4a38-4375-885a-8a762cacf6ff"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195589,
+              40.697862
+            ],
+            [
+              -124.194704,
+              40.697934
+            ],
+            [
+              -124.194631,
+              40.697422
+            ],
+            [
+              -124.19474,
+              40.697413
+            ],
+            [
+              -124.194726,
+              40.697323
+            ],
+            [
+              -124.194856,
+              40.697311
+            ],
+            [
+              -124.194815,
+              40.697025
+            ],
+            [
+              -124.195263,
+              40.696988
+            ],
+            [
+              -124.195298,
+              40.697246
+            ],
+            [
+              -124.195384,
+              40.69724
+            ],
+            [
+              -124.1954,
+              40.69736
+            ],
+            [
+              -124.195512,
+              40.697354
+            ],
+            [
+              -124.195589,
+              40.697862
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Physical Education",
+        "type": "building",
+        "_id": "bd7d6ba1-19ce-4843-b776-30d4f55532ae"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195521,
+              40.696318
+            ],
+            [
+              -124.19544,
+              40.696263
+            ],
+            [
+              -124.195282,
+              40.696397
+            ],
+            [
+              -124.194934,
+              40.696161
+            ],
+            [
+              -124.195241,
+              40.695904
+            ],
+            [
+              -124.195295,
+              40.69594
+            ],
+            [
+              -124.195333,
+              40.695909
+            ],
+            [
+              -124.195703,
+              40.696164
+            ],
+            [
+              -124.195521,
+              40.696318
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Child Development Center",
+        "type": "building",
+        "_id": "aa9deb25-d5db-4210-a11f-0902ae43d434"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195349,
+              40.696734
+            ],
+            [
+              -124.195329,
+              40.69681
+            ],
+            [
+              -124.195274,
+              40.696876
+            ],
+            [
+              -124.195199,
+              40.696925
+            ],
+            [
+              -124.195109,
+              40.696951
+            ],
+            [
+              -124.195008,
+              40.696954
+            ],
+            [
+              -124.194904,
+              40.696926
+            ],
+            [
+              -124.194819,
+              40.696872
+            ],
+            [
+              -124.194764,
+              40.696789
+            ],
+            [
+              -124.194754,
+              40.69671
+            ],
+            [
+              -124.194781,
+              40.696633
+            ],
+            [
+              -124.194869,
+              40.696548
+            ],
+            [
+              -124.194958,
+              40.696516
+            ],
+            [
+              -124.195065,
+              40.696502
+            ],
+            [
+              -124.195185,
+              40.696529
+            ],
+            [
+              -124.19527,
+              40.696578
+            ],
+            [
+              -124.195327,
+              40.696647
+            ],
+            [
+              -124.195349,
+              40.696734
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Field House",
+        "type": "building",
+        "_id": "9a2e69fd-1cd6-4b5b-b706-2f63efce50ba"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.192933,
+              40.696573
+            ],
+            [
+              -124.19294,
+              40.69662
+            ],
+            [
+              -124.192602,
+              40.696633
+            ],
+            [
+              -124.192585,
+              40.696391
+            ],
+            [
+              -124.192691,
+              40.696387
+            ],
+            [
+              -124.192674,
+              40.696141
+            ],
+            [
+              -124.192901,
+              40.696134
+            ],
+            [
+              -124.19292,
+              40.696427
+            ],
+            [
+              -124.1931,
+              40.696425
+            ],
+            [
+              -124.193113,
+              40.696565
+            ],
+            [
+              -124.192933,
+              40.696573
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Emergency Response Training Center",
+        "type": "building",
+        "_id": "2b5c1e00-d87c-4c62-a2ce-c08aaeadbbbe"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.192051,
+              40.697391
+            ],
+            [
+              -124.191887,
+              40.697417
+            ],
+            [
+              -124.191783,
+              40.697011
+            ],
+            [
+              -124.191946,
+              40.696987
+            ],
+            [
+              -124.192051,
+              40.697391
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Maintenance and Grounds",
+        "type": "building",
+        "_id": "866a7bd0-75bb-48a8-9abb-868df6884f33"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.191696,
+              40.697057
+            ],
+            [
+              -124.191585,
+              40.697073
+            ],
+            [
+              -124.191748,
+              40.697771
+            ],
+            [
+              -124.192172,
+              40.697714
+            ],
+            [
+              -124.192129,
+              40.697523
+            ],
+            [
+              -124.191818,
+              40.697565
+            ],
+            [
+              -124.191696,
+              40.697057
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Warehouse and Mailroom",
+        "type": "building",
+        "_id": "ea98693a-22bb-46aa-84f1-0ed5677140e7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.191179,
+              40.697964
+            ],
+            [
+              -124.190755,
+              40.698031
+            ],
+            [
+              -124.190625,
+              40.697554
+            ],
+            [
+              -124.191047,
+              40.697488
+            ],
+            [
+              -124.191179,
+              40.697964
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Firing Range",
+        "type": "building",
+        "_id": "3fba758e-d39e-4650-ae49-b687e4ce8eda"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198477,
+          40.698719
+        ]
+      },
+      "properties": {
+        "name": "HU-W1",
+        "buildingId": "f6624078-160e-45c3-9530-b135157fc128",
+        "type": "entrance",
+        "_id": "8fef23f4-33cf-45b9-9527-8c1376b30996"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198354,
+          40.69839
+        ]
+      },
+      "properties": {
+        "name": "HU-S1",
+        "buildingId": "f6624078-160e-45c3-9530-b135157fc128",
+        "type": "entrance",
+        "_id": "63749c64-14c5-430d-9c32-2c6cbd4cf087"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198083,
+          40.698963
+        ]
+      },
+      "properties": {
+        "name": "HU-N1",
+        "buildingId": "f6624078-160e-45c3-9530-b135157fc128",
+        "type": "entrance",
+        "_id": "bb52b633-dc37-4515-8e24-fbc81d2cfb67"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198649,
+          40.698869
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SAM-SE1",
+        "buildingId": "2397aa97-6e17-4f71-ac7a-f38fd3482d3d",
+        "direction": "SE",
+        "_id": "42188e8b-a4d0-4b93-b3f2-e00a2fc8f27f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198223,
+          40.699124
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SU-SE1",
+        "buildingId": "492e1b5f-b299-4f55-a63d-b2e02c94c00d",
+        "direction": "SE",
+        "_id": "dbdfff71-0813-4be6-9b79-960cc23f9115"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198096,
+          40.698576
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "HU-SE1",
+        "buildingId": "f6624078-160e-45c3-9530-b135157fc128",
+        "direction": "SE",
+        "_id": "675f6f9b-433d-4e0a-86a9-6da6898af66f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.197984,
+          40.698814
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "HU-NE1",
+        "buildingId": "f6624078-160e-45c3-9530-b135157fc128",
+        "direction": "NE",
+        "_id": "8d289773-76b1-4921-a7c8-fb656eeb046f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.199118,
+          40.698797
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SAM-SW1",
+        "buildingId": "2397aa97-6e17-4f71-ac7a-f38fd3482d3d",
+        "direction": "SW",
+        "_id": "4dfe76b2-c901-45ef-bb50-4792df189f33"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.199035,
+          40.699106
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SAM-NW1",
+        "buildingId": "2397aa97-6e17-4f71-ac7a-f38fd3482d3d",
+        "direction": "NW",
+        "_id": "9ac564cc-0d00-4cdd-bc95-a287b29a4cbb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.19845,
+          40.699055
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SU-S1",
+        "buildingId": "492e1b5f-b299-4f55-a63d-b2e02c94c00d",
+        "direction": "S",
+        "_id": "52742824-225b-4f8d-a99f-9673ee83b916"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.19866,
+          40.699118
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SU-SW1",
+        "buildingId": "492e1b5f-b299-4f55-a63d-b2e02c94c00d",
+        "direction": "SW",
+        "_id": "5d532e73-a9d9-4ccb-8ec6-b94a1c524361"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196734,
+          40.698203
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-SE1",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "SE",
+        "_id": "3beefdac-580d-407c-80f3-1fd074bf1ba3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196556,
+          40.698219
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-SE2",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "SE",
+        "_id": "4fc1e3f8-aaf6-4653-8d12-bc4570074b6f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196844,
+          40.698226
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-S1",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "S",
+        "_id": "100d3af3-20ba-4a7b-b17e-13c58e715c10"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.197011,
+          40.698212
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-SW1",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "SW",
+        "_id": "3ff5a849-f1a1-4665-b3a7-e47dcfc2f732"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.197201,
+          40.698195
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-SW2",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "SW",
+        "_id": "9228ca83-acdb-4990-b555-a29c722f3f43"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.19555,
+          40.698243
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SS-SW1",
+        "buildingId": "11c29f46-e93a-4dc8-94d9-76a0d0c110fd",
+        "direction": "SW",
+        "_id": "45567b85-bdde-4e72-888b-8775280938d7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195365,
+          40.699231
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "DNR-SW1",
+        "buildingId": "3a2a7f50-ac73-48f5-a19d-9e28e52b1d46",
+        "direction": "SW",
+        "_id": "5e995db6-dcad-4665-8b5c-36528d22d78c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196217,
+          40.699797
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AOT-S1",
+        "buildingId": "5289457b-9703-4087-aff1-74f9657e1b4c",
+        "direction": "S",
+        "_id": "6a216c28-0a7a-458b-b4db-011157ad5b4f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195893,
+          40.699631
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "GR-S1",
+        "buildingId": "8d55f5c2-2c8b-4d40-837c-279f960d9426",
+        "direction": "S",
+        "_id": "546d4ca6-552f-4ab4-9a84-917b3a99889c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.197451,
+          40.698768
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AT-SW1",
+        "buildingId": "4f38fa33-ba0d-41ed-affe-9d590ca01667",
+        "direction": "SW",
+        "_id": "2870e758-e297-4e36-9963-2cfa945a9bfa"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.197569,
+          40.699082
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AT-W1",
+        "buildingId": "4f38fa33-ba0d-41ed-affe-9d590ca01667",
+        "direction": "W",
+        "_id": "adddc8df-6eee-48a6-ae57-7d6837cd277c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196806,
+          40.698771
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AT-SE1",
+        "buildingId": "4f38fa33-ba0d-41ed-affe-9d590ca01667",
+        "direction": "SE",
+        "_id": "370defa3-f24b-440c-8092-d0ba746a48c2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198793,
+          40.698574
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PSB-N1",
+        "buildingId": "f467c422-9272-4bfe-8d4b-e9664a82f1c2",
+        "direction": "N",
+        "_id": "73090266-74cc-495f-9a09-67447cd340d4"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.199068,
+          40.69821
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PSB-W1",
+        "buildingId": "f467c422-9272-4bfe-8d4b-e9664a82f1c2",
+        "direction": "W",
+        "_id": "a034c7ec-a373-49b9-84e9-f979aff560d5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198141,
+          40.697774
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PSB-SE1",
+        "buildingId": "f467c422-9272-4bfe-8d4b-e9664a82f1c2",
+        "direction": "SE",
+        "_id": "a3226e61-e659-4e21-bedc-627a6868903d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195033,
+          40.698104
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "TH-S1",
+        "buildingId": "1724f989-4a38-4375-885a-8a762cacf6ff",
+        "direction": "S",
+        "_id": "16b14878-e612-469d-992f-9bf3d3848ee7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194749,
+          40.698723
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "MRH-SE1",
+        "buildingId": "fee67847-929f-4520-8bdc-9a6bff3b467a",
+        "direction": "SE",
+        "_id": "f8d5af68-3435-4f62-8c70-47291b23dccd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195541,
+          40.697624
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PE-W1",
+        "buildingId": "bd7d6ba1-19ce-4843-b776-30d4f55532ae",
+        "direction": "W",
+        "_id": "ad4e3d66-672a-4828-8aba-f09845f1442b"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195263,
+          40.697065
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PE-S1",
+        "buildingId": "bd7d6ba1-19ce-4843-b776-30d4f55532ae",
+        "direction": "S",
+        "_id": "f70e5801-9b58-45b8-b98d-1a2eeb216924"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194862,
+          40.698352
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "TH-NE1",
+        "buildingId": "1724f989-4a38-4375-885a-8a762cacf6ff",
+        "direction": "NE",
+        "_id": "04599731-be44-4708-b790-8c255ebac59d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198392,
+          40.699453
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SU-N1",
+        "buildingId": "492e1b5f-b299-4f55-a63d-b2e02c94c00d",
+        "direction": "N",
+        "_id": "0eb7737a-ab09-4a34-b227-658ef17cd74d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195297,
+          40.69683
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "FH-NW1",
+        "buildingId": "9a2e69fd-1cd6-4b5b-b706-2f63efce50ba",
+        "direction": "NW",
+        "_id": "96bcbedb-83ff-47ef-bf8f-c130019bdcc7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195516,
+          40.696054
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "CDC-SW1",
+        "buildingId": "aa9deb25-d5db-4210-a11f-0902ae43d434",
+        "direction": "SW",
+        "_id": "e4dc3bb0-0e99-4eb9-82f9-9f06f4ecb6a8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.193053,
+          40.696439
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "ERT-W1",
+        "buildingId": "2b5c1e00-d87c-4c62-a2ce-c08aaeadbbbe",
+        "direction": "W",
+        "_id": "7daf0acf-a766-45a2-bee2-a6ba43704a70"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.191014,
+          40.697504
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "FR-S1",
+        "buildingId": "3fba758e-d39e-4650-ae49-b687e4ce8eda",
+        "direction": "S",
+        "_id": "d7afd0f3-0c15-4717-a416-4723ba47ed50"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.192034,
+          40.697374
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "MAG-NW1",
+        "buildingId": "866a7bd0-75bb-48a8-9abb-868df6884f33",
+        "direction": "NW",
+        "_id": "472b77ba-fdf2-4949-86e1-515fd1a03ec8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.19209,
+          40.69754
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "WAM-W1",
+        "buildingId": "ea98693a-22bb-46aa-84f1-0ed5677140e7",
+        "direction": "W",
+        "_id": "25926f6a-db2d-4eae-bdee-7b8ec2793446"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.191659,
+          40.69708
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "WAM-S1",
+        "buildingId": "ea98693a-22bb-46aa-84f1-0ed5677140e7",
+        "direction": "S",
+        "_id": "693051b9-ac35-4d0f-9528-82fca8894560"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194993,
+          40.696519
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "FH-S1",
+        "buildingId": "9a2e69fd-1cd6-4b5b-b706-2f63efce50ba",
+        "direction": "S",
+        "_id": "2d89f24f-4424-4ad6-b223-b71f26dd7128"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194799,
+          40.696635
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "FH-SE1",
+        "buildingId": "9a2e69fd-1cd6-4b5b-b706-2f63efce50ba",
+        "direction": "SE",
+        "_id": "2e37539d-c483-42ca-9cab-4131d2649137"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194864,
+          40.696883
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "FH-NE1",
+        "buildingId": "9a2e69fd-1cd6-4b5b-b706-2f63efce50ba",
+        "direction": "NE",
+        "_id": "3b501a9d-d100-4a44-afe3-201feb50060f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194835,
+          40.697083
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PE-SE1",
+        "buildingId": "bd7d6ba1-19ce-4843-b776-30d4f55532ae",
+        "direction": "SE",
+        "_id": "b8ca3ba6-5a5b-43db-9163-0d0d9ee21ab7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194677,
+          40.697651
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PE-NE1",
+        "buildingId": "bd7d6ba1-19ce-4843-b776-30d4f55532ae",
+        "direction": "NE",
+        "_id": "9a79ddba-0378-413c-affe-b59395886bbf"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196526,
+          40.699482
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AT-NE1",
+        "buildingId": "4f38fa33-ba0d-41ed-affe-9d590ca01667",
+        "direction": "NE",
+        "_id": "30ecc0c6-7e35-448f-8508-363a0ce27d26"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.194194,
+          40.699469
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "AOT-SW1",
+        "buildingId": "78ff7168-9880-4b87-a8c7-6556eac4d30c",
+        "direction": "SW",
+        "_id": "a463181d-b757-4e40-b0d9-884be476d6a6"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195106,
+          40.698715
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "MRH-SW1",
+        "buildingId": "fee67847-929f-4520-8bdc-9a6bff3b467a",
+        "direction": "SW",
+        "_id": "bd95e437-0504-4f28-adb2-b8141cc24b81"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195031,
+          40.699211
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "DNR-SE1",
+        "buildingId": "3a2a7f50-ac73-48f5-a19d-9e28e52b1d46",
+        "direction": "SE",
+        "_id": "8b412583-d442-4bcb-82b0-f1b2eb43e600"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195523,
+          40.699423
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "DNR-W1",
+        "buildingId": "3a2a7f50-ac73-48f5-a19d-9e28e52b1d46",
+        "direction": "W",
+        "_id": "3dc34491-5b37-4656-ade5-1c4e987b43a3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195268,
+          40.698971
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "MRH-NW1",
+        "buildingId": "fee67847-929f-4520-8bdc-9a6bff3b467a",
+        "direction": "NW",
+        "_id": "fc65a682-9b17-43d8-b6cc-63a0f74856cf"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.197621,
+              40.697881
+            ],
+            [
+              -124.1976,
+              40.697818
+            ],
+            [
+              -124.197351,
+              40.697868
+            ],
+            [
+              -124.197374,
+              40.69793
+            ],
+            [
+              -124.197621,
+              40.697881
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "8e6c785f-d348-41cb-b370-75257f4c0a93"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.199799,
+              40.697872
+            ],
+            [
+              -124.200735,
+              40.698279
+            ],
+            [
+              -124.200805,
+              40.698257
+            ],
+            [
+              -124.200923,
+              40.697865
+            ],
+            [
+              -124.200887,
+              40.697786
+            ],
+            [
+              -124.200544,
+              40.697601
+            ],
+            [
+              -124.200412,
+              40.697509
+            ],
+            [
+              -124.200081,
+              40.697173
+            ],
+            [
+              -124.199799,
+              40.697872
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "287d255b-5b68-4449-9290-030afc4e878e"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.199627,
+              40.697723
+            ],
+            [
+              -124.199189,
+              40.697668
+            ],
+            [
+              -124.198958,
+              40.697495
+            ],
+            [
+              -124.198541,
+              40.697357
+            ],
+            [
+              -124.198325,
+              40.697301
+            ],
+            [
+              -124.198214,
+              40.697294
+            ],
+            [
+              -124.198742,
+              40.696165
+            ],
+            [
+              -124.198934,
+              40.696067
+            ],
+            [
+              -124.199084,
+              40.696099
+            ],
+            [
+              -124.199191,
+              40.696182
+            ],
+            [
+              -124.19989,
+              40.69698
+            ],
+            [
+              -124.199627,
+              40.697723
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "e67174d3-2d04-42ed-9ffd-183bc17eaa92"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.199774,
+              40.698198
+            ],
+            [
+              -124.200207,
+              40.698362
+            ],
+            [
+              -124.200248,
+              40.698319
+            ],
+            [
+              -124.20011,
+              40.698147
+            ],
+            [
+              -124.199797,
+              40.698066
+            ],
+            [
+              -124.199774,
+              40.698198
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "3078832a-f7b1-4e87-baea-4577f3377bb2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.198475,
+              40.696105
+            ],
+            [
+              -124.198056,
+              40.697032
+            ],
+            [
+              -124.19799,
+              40.69708
+            ],
+            [
+              -124.197661,
+              40.697215
+            ],
+            [
+              -124.197318,
+              40.697312
+            ],
+            [
+              -124.196563,
+              40.697683
+            ],
+            [
+              -124.196069,
+              40.69756
+            ],
+            [
+              -124.196127,
+              40.697416
+            ],
+            [
+              -124.196179,
+              40.697003
+            ],
+            [
+              -124.196207,
+              40.697
+            ],
+            [
+              -124.196277,
+              40.696937
+            ],
+            [
+              -124.196387,
+              40.696525
+            ],
+            [
+              -124.196405,
+              40.696461
+            ],
+            [
+              -124.196515,
+              40.696301
+            ],
+            [
+              -124.196666,
+              40.696089
+            ],
+            [
+              -124.196806,
+              40.695978
+            ],
+            [
+              -124.196991,
+              40.695891
+            ],
+            [
+              -124.19714,
+              40.69586
+            ],
+            [
+              -124.198013,
+              40.696062
+            ],
+            [
+              -124.198035,
+              40.696018
+            ],
+            [
+              -124.198342,
+              40.696086
+            ],
+            [
+              -124.198475,
+              40.696105
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "0f7f73fc-b385-4a1c-a3fc-7e9c0785b32b"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195863,
+              40.696343
+            ],
+            [
+              -124.196037,
+              40.696207
+            ],
+            [
+              -124.195987,
+              40.696048
+            ],
+            [
+              -124.195717,
+              40.69626
+            ],
+            [
+              -124.195863,
+              40.696343
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "7a672b3d-110b-45b3-8db6-688789d9c7ad"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.194578,
+              40.697292
+            ],
+            [
+              -124.194812,
+              40.697288
+            ],
+            [
+              -124.194776,
+              40.696943
+            ],
+            [
+              -124.194524,
+              40.696979
+            ],
+            [
+              -124.194578,
+              40.697292
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "ffc50cee-bf2b-4bbf-ad85-7cc795de4aae"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.192113,
+              40.697428
+            ],
+            [
+              -124.191986,
+              40.696939
+            ],
+            [
+              -124.192092,
+              40.696938
+            ],
+            [
+              -124.192284,
+              40.696979
+            ],
+            [
+              -124.192225,
+              40.697044
+            ],
+            [
+              -124.192311,
+              40.697088
+            ],
+            [
+              -124.192498,
+              40.697416
+            ],
+            [
+              -124.192113,
+              40.697428
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "51cc8c08-ae92-4f56-a4ee-f5290ed21f20"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.192647,
+              40.697955
+            ],
+            [
+              -124.192397,
+              40.6979
+            ],
+            [
+              -124.192392,
+              40.697856
+            ],
+            [
+              -124.192534,
+              40.69784
+            ],
+            [
+              -124.192676,
+              40.697897
+            ],
+            [
+              -124.192647,
+              40.697955
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "e2d40eaf-6d5a-4a7b-b169-9f0bc625ed43"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.194336,
+              40.69854
+            ],
+            [
+              -124.194233,
+              40.698731
+            ],
+            [
+              -124.194506,
+              40.698889
+            ],
+            [
+              -124.194607,
+              40.698836
+            ],
+            [
+              -124.194693,
+              40.698673
+            ],
+            [
+              -124.194336,
+              40.69854
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "8dd9d03b-a4d2-400f-810d-af35bb56b79d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.19463,
+              40.699742
+            ],
+            [
+              -124.194384,
+              40.699576
+            ],
+            [
+              -124.194233,
+              40.69939
+            ],
+            [
+              -124.194287,
+              40.699171
+            ],
+            [
+              -124.194303,
+              40.699031
+            ],
+            [
+              -124.194497,
+              40.698966
+            ],
+            [
+              -124.194715,
+              40.699138
+            ],
+            [
+              -124.194817,
+              40.699289
+            ],
+            [
+              -124.19483,
+              40.69941
+            ],
+            [
+              -124.194729,
+              40.699653
+            ],
+            [
+              -124.19463,
+              40.699742
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "b8dcd2ff-ada4-445b-a901-093577befdbe"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.196423,
+              40.699698
+            ],
+            [
+              -124.196797,
+              40.6998
+            ],
+            [
+              -124.197178,
+              40.699757
+            ],
+            [
+              -124.197208,
+              40.699682
+            ],
+            [
+              -124.196423,
+              40.699605
+            ],
+            [
+              -124.196423,
+              40.699698
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "5eb08809-3677-4c06-8afd-75e1bc6315ce"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.19815,
+              40.699562
+            ],
+            [
+              -124.19808,
+              40.699621
+            ],
+            [
+              -124.19797,
+              40.699624
+            ],
+            [
+              -124.197884,
+              40.699586
+            ],
+            [
+              -124.197864,
+              40.699523
+            ],
+            [
+              -124.19815,
+              40.699562
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "04086899-6f14-4bb9-87c0-0f7fc335045d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.196272,
+              40.698769
+            ],
+            [
+              -124.196748,
+              40.698716
+            ],
+            [
+              -124.196777,
+              40.698855
+            ],
+            [
+              -124.196398,
+              40.698897
+            ],
+            [
+              -124.196439,
+              40.699104
+            ],
+            [
+              -124.196299,
+              40.699113
+            ],
+            [
+              -124.196272,
+              40.698769
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "3647a460-975c-41f4-bf9d-5765cb5cc190"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.195669,
+              40.698767
+            ],
+            [
+              -124.19564,
+              40.698634
+            ],
+            [
+              -124.195685,
+              40.698636
+            ],
+            [
+              -124.195672,
+              40.698591
+            ],
+            [
+              -124.195963,
+              40.698559
+            ],
+            [
+              -124.195992,
+              40.698743
+            ],
+            [
+              -124.195669,
+              40.698767
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "ef7f8ca2-6666-42f6-b773-92139dfb0ab3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.197702,
+              40.699277
+            ],
+            [
+              -124.197862,
+              40.699356
+            ],
+            [
+              -124.198071,
+              40.69909
+            ],
+            [
+              -124.197907,
+              40.699019
+            ],
+            [
+              -124.197702,
+              40.699277
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "da4b9825-5713-4dc4-8585-2d41a9314fc6"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.199244,
+              40.699453
+            ],
+            [
+              -124.19917,
+              40.699395
+            ],
+            [
+              -124.199373,
+              40.699248
+            ],
+            [
+              -124.199472,
+              40.699306
+            ],
+            [
+              -124.199244,
+              40.699453
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "1e45070f-3472-4721-8fe1-8e5e8a764ca4"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -124.192534,
+              40.696036
+            ],
+            [
+              -124.193134,
+              40.696024
+            ],
+            [
+              -124.193134,
+              40.695636
+            ],
+            [
+              -124.192546,
+              40.695633
+            ],
+            [
+              -124.192534,
+              40.696036
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "type": "parking",
+        "_id": "30230341-a26a-4a9d-84ca-d0cc86bf1e97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198536,
+          40.698327
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PSB-NE1",
+        "buildingId": "f467c422-9272-4bfe-8d4b-e9664a82f1c2",
+        "direction": "NE",
+        "_id": "033e0683-9ad7-4730-a08b-5a3108d0d9fa"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198459,
+          40.69817
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "PSB-E1",
+        "buildingId": "f467c422-9272-4bfe-8d4b-e9664a82f1c2",
+        "direction": "E",
+        "_id": "a8eb76c2-29ce-4e16-82fc-2c095e0bf27b"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.196338,
+          40.698348
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "LRC-E1",
+        "buildingId": "399d0995-42f1-4e72-b874-3767bc17fa95",
+        "direction": "E",
+        "_id": "e752f198-51d6-4c1d-8480-a728824b0ca8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.195467,
+          40.698699
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SS-N1",
+        "buildingId": "11c29f46-e93a-4dc8-94d9-76a0d0c110fd",
+        "direction": "N",
+        "_id": "7f660d74-8b32-492f-a041-dbe3abb77bea"
+      }
+    }
+  ]
+}
