@@ -17,6 +17,7 @@ yarn-error.log*
 dist/
 build/
 out/
+.idea/
 
 # System files
 .DS_Store
