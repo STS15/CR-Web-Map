@@ -234,6 +234,226 @@
         return res.ok;
     }
 
+    /* global L, turf */
+
+// Build a simple undirected graph from walkway LineStrings
+    function buildWalkwayGraph(walkwaysFc) {
+        const nodes = [];             // array of [lng, lat]
+        const nodeIndex = new Map();  // "lng,lat" -> index
+        const adjacency = new Map();  // index -> [{ to, weight }]
+
+        function getNodeIndex(coord) {
+            const key = coord[0] + "," + coord[1];
+            if (!nodeIndex.has(key)) {
+                const idx = nodes.length;
+                nodes.push(coord);
+                nodeIndex.set(key, idx);
+                adjacency.set(idx, []);
+            }
+            return nodeIndex.get(key);
+        }
+
+        // Flatten MultiLineStrings etc
+        turf.flattenEach(walkwaysFc, function (feature) {
+            const geom = feature.geometry;
+            if (!geom || geom.type !== "LineString") return;
+
+            const coords = geom.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                const a = coords[i];
+                const b = coords[i + 1];
+                const ia = getNodeIndex(a);
+                const ib = getNodeIndex(b);
+
+                const w = turf.distance(a, b, { units: "kilometers" });
+
+                adjacency.get(ia).push({ to: ib, weight: w });
+                adjacency.get(ib).push({ to: ia, weight: w });
+            }
+        });
+
+        return { nodes, adjacency };
+    }
+
+// Find nearest graph node to a coordinate
+    function findNearestNode(nodes, coord) {
+        let bestIdx = -1;
+        let bestDist = Infinity;
+
+        for (let i = 0; i < nodes.length; i++) {
+            // distance in km (relative only)
+            const d = turf.distance(nodes[i], coord, { units: "kilometers" });
+            if (d < bestDist) {
+                bestDist = d;
+                bestIdx = i;
+            }
+        }
+
+        return { index: bestIdx, distanceKm: bestDist };
+    }
+
+// Dijkstra shortest path
+    function dijkstraShortestPath(graph, startIndex, endIndex) {
+        const { nodes, adjacency } = graph;
+        const n = nodes.length;
+
+        const dist = new Array(n).fill(Infinity);
+        const prev = new Array(n).fill(null);
+        const visited = new Array(n).fill(false);
+
+        dist[startIndex] = 0;
+
+        while (true) {
+            let u = -1;
+            let best = Infinity;
+            for (let i = 0; i < n; i++) {
+                if (!visited[i] && dist[i] < best) {
+                    best = dist[i];
+                    u = i;
+                }
+            }
+
+            if (u === -1) break;      // no reachable node
+            if (u === endIndex) break; // reached target
+
+            visited[u] = true;
+            const edges = adjacency.get(u) || [];
+            for (const edge of edges) {
+                const v = edge.to;
+                const alt = dist[u] + edge.weight;
+                if (alt < dist[v]) {
+                    dist[v] = alt;
+                    prev[v] = u;
+                }
+            }
+        }
+
+        if (!isFinite(dist[endIndex])) return null; // no path
+
+        // Reconstruct path of node indices
+        const pathIdx = [];
+        let cur = endIndex;
+        while (cur != null) {
+            pathIdx.push(cur);
+            cur = prev[cur];
+        }
+        pathIdx.reverse();
+
+        return {
+            distanceKm: dist[endIndex],
+            coordinates: pathIdx.map(function (i) { return graph.nodes[i]; })
+        };
+    }
+
+// Routing UI wiring
+    function initRouting(map, walkwaysFc) {
+        const sidebar = document.getElementById("route-sidebar");
+        if (!sidebar) return; // nothing to do on pages without the sidebar
+
+        const btnStart = document.getElementById("route-set-start");
+        const btnEnd = document.getElementById("route-set-end");
+        const btnClear = document.getElementById("route-clear");
+        const startLabel = document.getElementById("route-start-label");
+        const endLabel = document.getElementById("route-end-label");
+        const distanceLabel = document.getElementById("route-distance-label");
+
+        const graph = buildWalkwayGraph(walkwaysFc);
+
+        let mode = null; // "start" | "end" | null
+        let startCoord = null;
+        let endCoord = null;
+
+        const startMarker = L.marker([0, 0], { draggable: false });
+        const endMarker = L.marker([0, 0], { draggable: false });
+        let routeLine = null;
+
+        function updateLabels() {
+            startLabel.textContent = "Start: " + (startCoord ? startCoord[1].toFixed(5) + ", " + startCoord[0].toFixed(5) : "—");
+            endLabel.textContent = "End: " + (endCoord ? endCoord[1].toFixed(5) + ", " + endCoord[0].toFixed(5) : "—");
+        }
+
+        function clearRoute() {
+            startCoord = null;
+            endCoord = null;
+            if (map.hasLayer(startMarker)) map.removeLayer(startMarker);
+            if (map.hasLayer(endMarker)) map.removeLayer(endMarker);
+            if (routeLine && map.hasLayer(routeLine)) map.removeLayer(routeLine);
+            routeLine = null;
+            distanceLabel.textContent = "Distance: —";
+            updateLabels();
+        }
+
+        function computeAndDrawRoute() {
+            if (!startCoord || !endCoord) return;
+
+            const startNode = findNearestNode(graph.nodes, startCoord);
+            const endNode = findNearestNode(graph.nodes, endCoord);
+
+            const result = dijkstraShortestPath(graph, startNode.index, endNode.index);
+            if (!result) {
+                distanceLabel.textContent = "Distance: (no path)";
+                if (routeLine && map.hasLayer(routeLine)) map.removeLayer(routeLine);
+                return;
+            }
+
+            const km = result.distanceKm;
+            const meters = km * 1000;
+
+            distanceLabel.textContent =
+                "Distance: " + (meters < 1000 ? meters.toFixed(0) + " m" : km.toFixed(2) + " km");
+
+            if (routeLine && map.hasLayer(routeLine)) {
+                map.removeLayer(routeLine);
+            }
+
+            routeLine = L.polyline(
+                result.coordinates.map(function (c) { return [c[1], c[0]]; }),
+                {
+                    weight: 5,
+                    opacity: 0.85,
+                    dashArray: "6,4"
+                }
+            ).addTo(map);
+
+            map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+        }
+
+        btnStart.addEventListener("click", function () {
+            mode = "start";
+        });
+
+        btnEnd.addEventListener("click", function () {
+            mode = "end";
+        });
+
+        btnClear.addEventListener("click", function () {
+            mode = null;
+            clearRoute();
+        });
+
+        map.on("click", function (e) {
+            if (!mode) return;
+
+            const coord = [e.latlng.lng, e.latlng.lat];
+
+            if (mode === "start") {
+                startCoord = coord;
+                startMarker.setLatLng(e.latlng);
+                if (!map.hasLayer(startMarker)) startMarker.addTo(map);
+            } else if (mode === "end") {
+                endCoord = coord;
+                endMarker.setLatLng(e.latlng);
+                if (!map.hasLayer(endMarker)) endMarker.addTo(map);
+            }
+
+            mode = null;
+            updateLabels();
+            computeAndDrawRoute();
+        });
+
+        clearRoute();
+    }
+
     window.CR = window.CR || {};
     window.CR.initMap = initMap;
     window.CR.fetchFeatures = fetchFeatures;
@@ -247,4 +467,6 @@
     window.CR.createWalkwaysLayer = createWalkwaysLayer;
     window.CR.saveWalkway = saveWalkway;
     window.CR.deleteWalkway = deleteWalkway;
+    window.CR.initRouting = initRouting;
+
 })();

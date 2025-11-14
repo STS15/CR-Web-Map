@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js",
-    "seed": "node tools/seed.js"
+    "dev": "node server.js"
   },
   "dependencies": {
     "compression": "^1.7.4",

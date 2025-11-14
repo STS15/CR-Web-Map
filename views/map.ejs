@@ -43,15 +43,50 @@
 
 
 <div id="map"></div>
+<div class="sidebar" id="route-sidebar">
+    <header>
+        <h3 style="margin:0">Walking Directions</h3>
+    </header>
+    <main>
+        <p style="margin-top:0">
+            Click <b>Start</b>, then click the map where you are.
+            Then click <b>Destination</b> and click your destination.
+        </p>
 
+        <fieldset>
+            <legend>Pick points</legend>
+            <button class="btn" id="route-set-start">Set start</button>
+            <button class="btn" id="route-set-end">Set destination</button>
+            <button class="btn secondary" id="route-clear">Clear</button>
+        </fieldset>
+
+        <fieldset>
+            <legend>Details</legend>
+            <div><span class="mono" id="route-start-label">Start: —</span></div>
+            <div><span class="mono" id="route-end-label">End: —</span></div>
+            <div><span class="mono" id="route-distance-label">Distance: —</span></div>
+        </fieldset>
+    </main>
+</div>
 <footer class="toasts" id="toasts"></footer>
 
 <script>
     (async function () {
         const map = CR.initMap("map");
-        const features = await CR.fetchFeatures();
-        CR.createFeaturesLayer(features).addTo(map);
+        const [features, walkways] = await Promise.all([
+            CR.fetchFeatures(),
+            CR.fetchWalkways()
+        ]);
+
+        const featuresLayer = CR.createFeaturesLayer(features).addTo(map);
+        const walkwaysLayer = CR.createWalkwaysLayer(walkways).addTo(map);
+
+        // NEW: initialize routing tools
+        if (CR.initRouting) {
+            CR.initRouting(map, walkways);
+        }
     })();
 </script>
+
 </body>
 </html>
