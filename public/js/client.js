@@ -33,7 +33,13 @@
         CR.enableTilePrefetch(map, osm);
         const esriSat = L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            { maxZoom: 24, maxNativeZoom: 22 }
+            {
+                maxZoom: 24,
+                maxNativeZoom: 19, // ESRI imagery often stops here; allow over-zooming to reuse last good tiles
+                reuseTiles: true,
+                updateWhenZooming: false,
+                updateWhenIdle: true
+            }
         );
         CR.enableTilePrefetch(map, esriSat);
 
