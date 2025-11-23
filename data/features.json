@@ -2942,6 +2942,38 @@
         "direction": "N",
         "_id": "7f660d74-8b32-492f-a041-dbe3abb77bea"
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198783,
+          40.698741
+        ]
+      },
+      "properties": {
+        "type": "building",
+        "name": "Building",
+        "_id": "c9093e6b-a4e1-4468-9ecc-1d264deefa6f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -124.198783,
+          40.698741
+        ]
+      },
+      "properties": {
+        "type": "entrance",
+        "name": "SAM-S1",
+        "buildingId": "2397aa97-6e17-4f71-ac7a-f38fd3482d3d",
+        "direction": "S",
+        "_id": "a174d265-c8b1-4b36-a88b-198445b8562b"
+      }
     }
   ]
 }
