@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>College of the Redwoods · Campus Map</title>
+    <title>College of the Redwoods | Campus Map</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -15,59 +15,141 @@
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script src="/static/js/client.js"></script>
 </head>
-<body>
+<body class="app-shell">
 <header class="appbar">
     <div class="brand">
         <img src="https://www.redwoods.edu/images/CR_logo.svg" alt="College of the Redwoods logo" />
-        <h1><span class="hide-on-mobile"><%= isAdmin ? 'Admin' : 'Campus Map' %></span></h1>
+        <div class="brand-text">
+            <p class="subtitle"><%= isAdmin ? 'Admin workspace' : 'Campus map' %></p>
+        </div>
     </div>
 
-    <% if (messages && messages.success && messages.success.length) { %>
-        <span class="badge"><%= messages.success.join(", ") %></span>
-    <% } %>
-    <% if (messages && messages.error && messages.error.length) { %>
-        <span class="badge" style="background:#ffebee; color:#8e001c"><%= messages.error.join(", ") %></span>
-    <% } %>
-
-    <form action="<%= isAdmin ? '/logout' : '/login' %>" method="post" class="actions">
-        <% if (!isAdmin) { %>
-            <input name="password" type="password" placeholder="Admin password" />
-            <button type="submit" class="ghost">Login</button>
-            <a class="btn secondary" href="/admin" title="Admin">Admin</a>
-        <% } else { %>
-            <button type="submit">Logout</button>
-            <a class="btn secondary" href="/">Map</a>
+    <div class="appbar-messages">
+        <% if (messages && messages.success && messages.success.length) { %>
+            <span class="badge"><%= messages.success.join(", ") %></span>
         <% } %>
-    </form>
+        <% if (messages && messages.error && messages.error.length) { %>
+            <span class="badge badge-error"><%= messages.error.join(", ") %></span>
+        <% } %>
+    </div>
+
+    <div class="appbar-spacer"></div>
+
+    <div class="appbar-actions">
+        <button class="utility-toggle" id="utility-toggle" aria-expanded="false" aria-controls="utility-drawer" type="button">
+            <span class="hamburger" aria-hidden="true"></span>
+            <span class="sr-only">Open menu</span>
+        </button>
+    </div>
 </header>
 
+<main class="map-shell">
+    <div id="map"></div>
 
-<div id="map"></div>
-<div class="sidebar" id="route-sidebar">
-    <header>
-        <h3 style="margin:0">Walking Directions</h3>
-    </header>
-    <main>
-        <p style="margin-top:0">
-            Click <b>Start</b>, then click the map where you are.
-            Then click <b>Destination</b> and click your destination.
-        </p>
+    <div class="sidebar" id="route-sidebar">
+        <header>
+            <h3>Walking directions</h3>
+        </header>
+        <main>
+            <p class="muted">
+                Drop a start and destination anywhere on the map. We snap to the closest walkway (within 150m) for a clean route.
+            </p>
 
-        <fieldset>
-            <legend>Pick points</legend>
-            <button class="btn" id="route-set-start">Set start</button>
-            <button class="btn" id="route-set-end">Set destination</button>
-            <button class="btn secondary" id="route-clear">Clear</button>
-        </fieldset>
+            <fieldset>
+                <legend>Pick points</legend>
+                <div class="button-row">
+                    <button class="btn" id="route-set-start">Set start</button>
+                    <button class="btn" id="route-set-end">Set destination</button>
+                    <button class="btn secondary" id="route-clear">Clear</button>
+                </div>
+            </fieldset>
 
-        <fieldset>
-            <legend>Details</legend>
-            <div><span class="mono" id="route-start-label">Start: —</span></div>
-            <div><span class="mono" id="route-end-label">End: —</span></div>
-            <div><span class="mono" id="route-distance-label">Distance: —</span></div>
-        </fieldset>
-    </main>
+            <fieldset>
+                <legend>Details</legend>
+                <div><span class="mono" id="route-start-label">Start: --</span></div>
+                <div><span class="mono" id="route-end-label">End: --</span></div>
+                <div><span class="mono" id="route-distance-label">Distance: --</span></div>
+            </fieldset>
+        </main>
+    </div>
+
+    <nav class="utility-drawer" id="utility-drawer" aria-hidden="true">
+        <header class="drawer-header">
+            <div>
+                <p class="eyebrow">Quick controls</p>
+                <h4>Map options</h4>
+            </div>
+            <button class="ghost" type="button" id="utility-close">Close</button>
+        </header>
+        <div class="drawer-section">
+            <p class="eyebrow">Base map</p>
+            <div class="basemap-toggle" id="basemap-toggle">
+                <button type="button" class="basemap-btn active" data-base-layer="paper">Paper</button>
+                <button type="button" class="basemap-btn" data-base-layer="satellite">Satellite</button>
+            </div>
+        </div>
+        <ul class="drawer-list">
+            <li><button type="button" class="drawer-link" data-action="settings">Settings</button></li>
+            <li><button type="button" class="drawer-link" data-action="fit-to-campus">Fit to campus</button></li>
+            <li><button type="button" class="drawer-link" data-action="download-data">Download GeoJSON</button></li>
+            <li><button type="button" class="drawer-link" data-action="help">Help and tips</button></li>
+        </ul>
+        <div class="drawer-floating-actions">
+            <button type="button" class="drawer-icon-btn" id="drawer-admin-fab" title="<%= isAdmin ? 'Switch account' : 'Admin login' %>">
+                <span class="icon-circle">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm-8 18c0-3.3 3.6-6 8-6s8 2.7 8 6v2H4v-2Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span class="icon-label"><%= isAdmin ? 'Admin' : 'Login' %></span>
+            </button>
+            <button type="button" class="drawer-icon-btn" id="drawer-settings-fab" title="Settings">
+                <span class="icon-circle">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m10.9 2.1 1.1-.1 1.1.1.3 2.2c.6.2 1.2.5 1.7.8l1.9-1.2 1.6 1.6-1.2 1.9c.3.5.6 1.1.8 1.7l2.2.3.1 1.1-.1 1.1-2.2.3c-.2.6-.5 1.2-.8 1.7l1.2 1.9-1.6 1.6-1.9-1.2c-.5.3-1.1.6-1.7.8l-.3 2.2-1.1.1-1.1-.1-.3-2.2c-.6-.2-1.2-.5-1.7-.8l-1.9 1.2-1.6-1.6 1.2-1.9c-.3-.5-.6-1.1-.8-1.7l-2.2-.3-.1-1.1.1-1.1 2.2-.3c.2-.6.5-1.2.8-1.7l-1.2-1.9 1.6-1.6 1.9 1.2c.5-.3 1.1-.6 1.7-.8l.3-2.2Zm1.1 6.9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span class="icon-label">Settings</span>
+            </button>
+        </div>
+    </nav>
+    <div class="utility-scrim" id="utility-scrim" aria-hidden="true"></div>
+</main>
+
+<div class="modal-scrim" id="auth-modal-scrim" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <header class="modal-header">
+            <h3 id="auth-modal-title"><%= isAdmin ? 'Switch account' : 'Admin login' %></h3>
+            <button type="button" class="ghost" id="auth-modal-close">Close</button>
+        </header>
+        <form action="<%= isAdmin ? '/logout' : '/login' %>" method="post" class="modal-body">
+            <% if (!isAdmin) { %>
+                <label for="modal-password">Admin password</label>
+                <input id="modal-password" name="password" type="password" placeholder="Enter admin password" required />
+                <button type="submit" class="btn fullwidth">Login</button>
+            <% } else { %>
+                <p class="muted">You are signed in as admin.</p>
+                <button type="submit" class="btn fullwidth">Logout</button>
+            <% } %>
+        </form>
+    </div>
 </div>
+
+<div class="modal-scrim" id="settings-modal-scrim" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+        <header class="modal-header">
+            <h3 id="settings-modal-title">Settings</h3>
+            <button type="button" class="ghost" id="settings-modal-close">Close</button>
+        </header>
+        <div class="modal-body">
+            <p class="muted">Add your administrative settings here.</p>
+            <div class="button-row">
+                <button type="button" class="btn secondary fullwidth" id="settings-placeholder">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer class="toasts" id="toasts"></footer>
 
 <script>
@@ -78,12 +160,14 @@
             CR.fetchWalkways()
         ]);
 
-        const featuresLayer = CR.createFeaturesLayer(features).addTo(map);
-        const walkwaysLayer = CR.createWalkwaysLayer(walkways).addTo(map);
+        CR.createFeaturesLayer(features).addTo(map);
+        CR.createWalkwaysLayer(walkways).addTo(map);
 
-        // NEW: initialize routing tools
         if (CR.initRouting) {
             CR.initRouting(map, walkways);
+        }
+        if (CR.initUtilityDrawer) {
+            CR.initUtilityDrawer(map);
         }
     })();
 </script>

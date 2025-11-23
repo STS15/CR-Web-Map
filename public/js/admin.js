@@ -6,6 +6,8 @@
     var CURVE_SAMPLES = 20;
     var CURVE_ALPHA = 0.5;
     var HANDLE_COLOR = "#ff3b3b";
+    var EDIT_SNAP_METERS = 3;
+    var DELETE_POLYGON_STYLE = { color: "#d32f2f", weight: 2, fillColor: "#ffcdd2", fillOpacity: 0.15 };
 
     /**
      * Bootstraps the admin map with segmented walkways, live bend handles, right-side panel, and walkway edit mode.
@@ -13,6 +15,7 @@
      */
     async function bootAdmin() {
         const map = CR.initMap("map");
+        if (CR.initUtilityDrawer) CR.initUtilityDrawer(map);
 
         const fc = await CR.fetchFeatures();
         const allFeatures = fc.features || [];
@@ -23,12 +26,72 @@
         const walkwayFeatures = (sanitizedWalkways.features || []).slice();
         const walkwayLayer = CR.createWalkwaysLayer({ type: "FeatureCollection", features: walkwayFeatures }).addTo(map);
 
+        // Persist edits made via Leaflet draw editor
+        map.on(L.Draw.Event.EDITED, function (e) {
+            const layers = e.layers;
+            layers.eachLayer(async function (layer) {
+                if (!layer.feature || !layer.feature.properties || layer.feature.geometry.type !== "LineString") return;
+                await persistEditedWalkway(map, layer, walkwayFeatures);
+            });
+        });
+        window.CR.onMenuAction = function (action) {
+            if (action === "fit-to-campus") {
+                try {
+                    const group = L.featureGroup([featureLayer, walkwayLayer]);
+                    const b = group.getBounds();
+                    if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.warn("Fit to campus failed", e);
+                }
+                return;
+            }
+            if (action === "download-data") {
+                try {
+                    const combined = {
+                        features: allFeatures,
+                        walkways: walkwayFeatures
+                    };
+                    const blob = new Blob([JSON.stringify(combined, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "campus-data.json";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.warn("Download failed", e);
+                }
+                return;
+            }
+            if (action === "help") {
+                alert("Tips:\n- Use draw controls (top-left) to add/edit features.\n- Shortcuts: B building, E entrance, S stairwell, R room, W walkway, P parking.\n- Use the gear for settings.");
+            }
+            if (action === "bulk-select") {
+                beginBoxSelect();
+                alert("Drag a box to select walkway segments. Press Delete to remove them.");
+            }
+            if (action === "polygon-delete") {
+                startPolygonDelete();
+            }
+            if (action === "delete-selected") {
+                if (!multiSelection.size) {
+                    alert("No walkway segments selected.");
+                    return;
+                }
+                deleteSelectedWalkways(walkwayLayer, multiSelection);
+            }
+        };
+
         let nodes = buildNodeIndex(walkwayFeatures, allFeatures);
         let selectedWalkwayLayer = null;
         let segmentHandles = [];
         let editMode = false;
         let boxState = null;
         let multiSelection = new Set();
+        let multiSelectMode = false;
+        let deletePolygonDraw = null;
 
         const drawControl = new L.Control.Draw({
             position: "topleft",
@@ -68,7 +131,10 @@
             if (e.key === "w" || e.key === "W") startDraw("walkway");
             if (e.key === "p" || e.key === "P") startDraw("parking");
             if (e.key === "x" || e.key === "X") toggleWalkwayEditMode();
-            if ((e.key === "Delete" || e.key === "Backspace") && editMode) deleteSelectedWalkways(walkwayLayer, multiSelection);
+            if (e.key === "m" || e.key === "M") {
+                beginBoxSelect(); // drag-to-select
+            }
+            if ((e.key === "Delete" || e.key === "Backspace") && (editMode || multiSelection.size)) deleteSelectedWalkways(walkwayLayer, multiSelection);
         });
 
         /**
@@ -91,6 +157,112 @@
         }
 
         /**
+         * Snap / magnet a walkway polyline so it connects cleanly to the network:
+         *  - Every vertex snaps to the nearest walkway segment or node within SNAP_METERS.
+         *  - If start and end are nearly the same, we close the loop.
+         * @param {L.Map} mapInst
+         * @param {Array<[number,number]>} coords raw [lng,lat] polyline
+         * @param {GeoJSON.Feature[]} walkways existing walkway features
+         * @param {Array<[number,number]>} nodes existing graph nodes (entrances, endpoints, etc.)
+         * @param {number} snapMeters max snap distance in meters
+         * @returns {Array<[number,number]>} adjusted coordinates
+         */
+        function magnetizeWalkwayPolyline(mapInst, coords, walkways, nodes, snapMeters) {
+            if (!coords || coords.length < 2) return coords;
+
+            function snapToNodes(c) {
+                var p = L.latLng(c[1], c[0]);
+                var best = null;
+                for (var i = 0; i < nodes.length; i++) {
+                    var q = L.latLng(nodes[i][1], nodes[i][0]);
+                    var d = mapInst.distance(p, q);
+                    if (d <= snapMeters && (!best || d < best.d)) best = { d: d, c: nodes[i] };
+                }
+                return best ? best.c : c;
+            }
+
+            function snapToWalkwaySegments(c) {
+                const clickLL = L.latLng(c[1], c[0]);
+                const clickPt = mapInst.project(clickLL);
+                let best = null;
+
+                walkways.forEach(function (f) {
+                    if (!f.geometry || f.geometry.type !== "LineString") return;
+                    const segCoords = f.geometry.coordinates || [];
+                    if (segCoords.length < 2) return;
+
+                    for (let i = 0; i < segCoords.length - 1; i++) {
+                        const A = segCoords[i];
+                        const B = segCoords[i + 1];
+                        const aLL = L.latLng(A[1], A[0]);
+                        const bLL = L.latLng(B[1], B[0]);
+                        const aPt = mapInst.project(aLL);
+                        const bPt = mapInst.project(bLL);
+
+                        const vx = bPt.x - aPt.x;
+                        const vy = bPt.y - aPt.y;
+                        const wx = clickPt.x - aPt.x;
+                        const wy = clickPt.y - aPt.y;
+
+                        const vv = vx * vx + vy * vy || 1e-12;
+                        let t = (vx * wx + vy * wy) / vv;
+                        if (t < 0) t = 0;
+                        if (t > 1) t = 1;
+
+                        const projX = aPt.x + t * vx;
+                        const projY = aPt.y + t * vy;
+                        const projLL = mapInst.unproject(L.point(projX, projY));
+
+                        const dist = mapInst.distance(clickLL, projLL);
+                        if (dist <= snapMeters && (!best || dist < best.dist)) {
+                            best = {
+                                dist: dist,
+                                coord: [projLL.lng, projLL.lat]
+                            };
+                        }
+                    }
+                });
+
+                return best ? best.coord : c;
+            }
+
+            // Step 1: snap each vertex
+            const out = coords.map(function (c) {
+                let snapped = snapToWalkwaySegments(c);
+                if (snapped === c) snapped = snapToNodes(c);
+                return snapped;
+            });
+
+            // Step 2: auto-close loop if start/end are almost the same
+            if (out.length > 2) {
+                const firstLL = L.latLng(out[0][1], out[0][0]);
+                const lastLL = L.latLng(out[out.length - 1][1], out[out.length - 1][0]);
+                if (mapInst.distance(firstLL, lastLL) <= snapMeters) {
+                    out[out.length - 1] = out[0].slice();
+                }
+            }
+
+            // Step 3: remove duplicate / near-duplicate vertices
+            const cleaned = [];
+            for (let i = 0; i < out.length; i++) {
+                const c = out[i];
+                if (cleaned.length === 0) {
+                    cleaned.push(c);
+                } else {
+                    const prev = cleaned[cleaned.length - 1];
+                    const d = mapInst.distance(
+                        L.latLng(prev[1], prev[0]),
+                        L.latLng(c[1], c[0])
+                    );
+                    if (d > 0.1) cleaned.push(c);
+                }
+            }
+
+            return cleaned.length >= 2 ? cleaned : out;
+        }
+
+
+        /**
          * Handles new geometry creation by saving to the correct store with walkway segmentation.
          * @param {L.Layer} layer
          * @param {string} type
@@ -100,47 +272,61 @@
             const gj = layer.toGeoJSON();
 
             if (type === "walkway") {
-                const snapped = snapLineEndpoints(map, gj, nodes, SNAP_METERS);
-                const coords = snapped.geometry.coordinates.slice();
+                // Raw coordinates from the drawn line
+                let coords = (gj.geometry && gj.geometry.coordinates)
+                    ? gj.geometry.coordinates.slice()
+                    : [];
                 if (coords.length < 2) return;
+
+                // New: magnetize to existing walkways + nodes
+                coords = magnetizeWalkwayPolyline(map, coords, walkwayFeatures, nodes, SNAP_METERS);
+                if (coords.length < 2) return;
+
+                // Single straight segment
                 if (coords.length === 2) {
                     const name = prompt("Walkway name or code (optional):", "") || undefined;
-                    const props = { type: "walkway", name: name, curved: false, control: coords.slice(), segmented: true };
-                    const saved = await CR.saveWalkway({ type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: props });
-                    walkwayFeatures.push(saved);
-                    const g = L.geoJSON(saved, { style: function () { return { color: "rgb(16,124,111)", weight: 3 }; } }).addTo(walkwayLayer);
-                    g.eachLayer(function (ll) {
-                        attachWalkway(map, walkwayLayer, ll, function (sel) {
-                            selectedWalkwayLayer = setSelectedWalkway(selectedWalkwayLayer, sel);
-                            updateWalkwayPanel(map, sel, walkwayLayer, function (nl) { selectedWalkwayLayer = nl; });
-                            clearSegmentHandles(segmentHandles);
-                            segmentHandles = showSegmentHandles(map, sel, CURVE_SAMPLES, CURVE_ALPHA, function (newGeom, newControl, props2) { return persistBend(sel, newGeom, newControl, props2); });
-                        });
+                    const props = {
+                        type: "walkway",
+                        name: name,
+                        curved: false,
+                        control: coords.slice(),
+                        segmented: true
+                    };
+
+                    const saved = await CR.saveWalkway({
+                        type: "Feature",
+                        geometry: {type: "LineString", coordinates: coords},
+                        properties: props
                     });
-                } else {
+
+                    walkwayFeatures.push(saved);
+
+                addAndAttachWalkway(saved);
+            } else {
+                    // Multi-vertex walkway: split into segments so each bend is editable
                     const baseName = prompt("Walkway base name/code (optional, applied to segments):", "") || undefined;
                     const segs = splitIntoSegments(coords).map(function (pair, i) {
                         return {
                             type: "Feature",
-                            geometry: { type: "LineString", coordinates: pair },
-                            properties: { type: "walkway", name: baseName, curved: false, control: pair.slice(), segmented: true, segmentIndex: i }
+                            geometry: {type: "LineString", coordinates: pair},
+                            properties: {
+                                type: "walkway",
+                                name: baseName,
+                                curved: false,
+                                control: pair.slice(),
+                                segmented: true,
+                                segmentIndex: i
+                            }
                         };
                     });
+
                     for (const f of segs) {
                         const saved = await CR.saveWalkway(f);
                         walkwayFeatures.push(saved);
-                        const g = L.geoJSON(saved, { style: function () { return { color: "rgb(16,124,111)", weight: 3 }; } }).addTo(walkwayLayer);
-                        g.eachLayer(function (ll) {
-                            attachWalkway(map, walkwayLayer, ll, function (sel) {
-                                selectedWalkwayLayer = setSelectedWalkway(selectedWalkwayLayer, sel);
-                                updateWalkwayPanel(map, sel, walkwayLayer, function (nl) { selectedWalkwayLayer = nl; });
-                                clearSegmentHandles(segmentHandles);
-                                segmentHandles = showSegmentHandles(map, sel, CURVE_SAMPLES, CURVE_ALPHA, function (newGeom, newControl, props2) { return persistBend(sel, newGeom, newControl, props2); });
-                            });
-                        });
+
+                        addAndAttachWalkway(saved);
                     }
                 }
-                return;
             }
 
             if (type === "entrance") {
@@ -226,16 +412,37 @@
                 for (const seg of segs) {
                     const saved = await CR.saveWalkway(seg);
                     store.push(saved);
-                    const g = L.geoJSON(saved, { style: function () { return { color: "rgb(16,124,111)", weight: 3 }; } }).addTo(wl);
-                    g.eachLayer(function (ll) {
-                        attachWalkway(mapInst, wl, ll, function () {});
-                    });
+                    addAndAttachWalkway(saved);
                 }
                 if (id) {
                     await CR.deleteWalkway(id);
                     wl.removeLayer(layer);
                 }
             }
+        }
+
+        function addAndAttachWalkway(savedFeature) {
+            const g = L.geoJSON(savedFeature, {
+                style: function () { return { color: "rgb(16,124,111)", weight: 3 }; }
+            }).addTo(walkwayLayer);
+
+            g.eachLayer(function (ll) {
+                attachWalkway(map, walkwayLayer, ll, function (sel) {
+                    selectedWalkwayLayer = setSelectedWalkway(selectedWalkwayLayer, sel);
+                    updateWalkwayPanel(map, sel, walkwayLayer, function (nl) { selectedWalkwayLayer = nl; });
+                    clearSegmentHandles(segmentHandles);
+                    segmentHandles = showSegmentHandles(
+                        map,
+                        sel,
+                        CURVE_SAMPLES,
+                        CURVE_ALPHA,
+                        function (newGeom, newControl, props2) {
+                            return persistBend(sel, newGeom, newControl, props2);
+                        }
+                    );
+                    refreshSelectionStyles(walkwayLayer, multiSelection);
+                });
+            });
         }
 
         /**
@@ -268,7 +475,22 @@
          * @returns {void}
          */
         function attachWalkway(mapInst, wl, layer, onSelect) {
-            layer.on("click", function () { onSelect(layer); });
+            layer.on("click", function (e) {
+                const id = getWalkwayId(layer);
+                const multiToggle = multiSelectMode || (e.originalEvent && (e.originalEvent.metaKey || e.originalEvent.ctrlKey));
+                if (multiToggle && id) {
+                    if (multiSelection.has(id)) {
+                        multiSelection.delete(id);
+                    } else {
+                        multiSelection.add(id);
+                    }
+                    refreshSelectionStyles(wl, multiSelection);
+                    return;
+                }
+                // single select
+                onSelect(layer);
+                refreshSelectionStyles(wl, multiSelection, layer);
+            });
         }
 
         /**
@@ -282,6 +504,18 @@
             const sel = next || null;
             if (sel && sel.setStyle) sel.setStyle({ weight: 5, opacity: 1.0 });
             return sel;
+        }
+        function getWalkwayId(layer) {
+            return layer && layer.feature && layer.feature.properties ? layer.feature.properties._id : null;
+        }
+        function refreshSelectionStyles(wl, selection, single) {
+            wl.eachLayer(function (l) {
+                const id = getWalkwayId(l);
+                const isSel = selection && selection.has(id);
+                if (l.setStyle) {
+                    l.setStyle({ weight: isSel || l === single ? 5 : 3, color: isSel ? "#0e6f64" : "rgb(16,124,111)", opacity: 1 });
+                }
+            });
         }
 
         /**
@@ -383,110 +617,11 @@
          * @returns {void}
          */
         function updateWalkwayPanel(mapInst, layer, wl, setSel) {
-            const f = layer.feature || {};
-            const p = f.properties || {};
-            const name = p.name || "(unnamed)";
-            const id = p._id ? ("#" + p._id) : "";
-            const isCurved = !!p.curved;
-
-            let panel = document.getElementById("walkway-panel");
-            if (!panel) {
-                panel = document.createElement("div");
-                panel.id = "walkway-panel";
-                panel.style.position = "fixed";
-                panel.style.top = "96px";
-                panel.style.right = "16px";
-                panel.style.width = "300px";
-                panel.style.maxHeight = "calc(100vh - 120px)";
-                panel.style.overflow = "auto";
-                panel.style.background = "#fff";
-                panel.style.border = "1px solid #e0e0e0";
-                panel.style.borderRadius = "10px";
-                panel.style.boxShadow = "0 6px 24px rgba(0,0,0,.12)";
-                panel.style.zIndex = "1000";
-                panel.style.padding = "12px";
-                panel.style.fontFamily = "Lato, system-ui, sans-serif";
-                document.body.appendChild(panel);
-            }
-
-            let editBar = document.getElementById("walkway-editbar");
-            if (!editBar) {
-                editBar = document.createElement("div");
-                editBar.id = "walkway-editbar";
-                editBar.style.position = "fixed";
-                editBar.style.right = "16px";
-                editBar.style.top = "56px";
-                editBar.style.zIndex = "1001";
-                editBar.style.display = "flex";
-                editBar.style.gap = "8px";
-                document.body.appendChild(editBar);
-            }
-            editBar.innerHTML = '<button id="wm-toggle" class="btn small" style="padding:.4rem .6rem">' + (editMode ? 'Exit Walkway Edit (X)' : 'Walkway Edit (X)') + '</button><button id="wm-delete" class="btn small" style="padding:.4rem .6rem;background:#ffe6e6;color:#8e001c;border:1px solid #ffd0d0" ' + (multiSelection.size ? '' : 'disabled') + '>Delete Selected (' + multiSelection.size + ')</button>';
-            const tBtn = editBar.querySelector("#wm-toggle");
-            const dBtn = editBar.querySelector("#wm-delete");
-            if (tBtn) tBtn.onclick = toggleWalkwayEditMode;
-            if (dBtn) dBtn.onclick = function () { deleteSelectedWalkways(walkwayLayer, multiSelection); };
-
-            panel.innerHTML =
-                '<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.25rem">' +
-                '<strong style="font-size:14px">' + name + '</strong>' +
-                '<small style="opacity:.7">' + id + '</small>' +
-                '</div>' +
-                '<div style="font-size:12px;opacity:.8;margin-bottom:.5rem">' + (isCurved ? "Curved segment" : "Straight segment") + '</div>' +
-                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">' +
-                '<button id="wp-rename" class="btn small" style="padding:.45rem .6rem">Rename</button>' +
-                '<button id="wp-toggle" class="btn small" style="padding:.45rem .6rem">' + (isCurved ? "Uncurve" : "Curve") + '</button>' +
-                '<button id="wp-edit" class="btn small" style="padding:.45rem .6rem">Edit shape</button>' +
-                '<button id="wp-delete" class="btn small" style="padding:.45rem .6rem;background:#ffe6e6;color:#8e001c;border:1px solid #ffd0d0">Delete</button>' +
-                '</div>' +
-                '<div style="font-size:12px;padding:.5rem;border:1px dashed #ccc;border-radius:8px">Drag the red midpoints to preview live curves. Release to save.</div>';
-
-            const rn = panel.querySelector("#wp-rename");
-            if (rn) rn.addEventListener("click", async function () {
-                const newName = prompt("Walkway name/code:", p.name || "");
-                if (newName == null) return;
-                const updated = { type: "Feature", geometry: f.geometry, properties: Object.assign({}, p, { name: newName, _id: p._id }) };
-                const saved = await CR.saveWalkway(updated);
-                layer.feature = saved;
-                updateWalkwayPanel(mapInst, layer, wl, setSel);
-            });
-
-            const tg = panel.querySelector("#wp-toggle");
-            if (tg) tg.addEventListener("click", async function () {
-                if (p.curved) {
-                    const control = (p.control && Array.isArray(p.control)) ? p.control : (f.geometry.coordinates || []);
-                    const upd = { type: "Feature", geometry: { type: "LineString", coordinates: control }, properties: Object.assign({}, p, { curved: false, control: control, _id: p._id }) };
-                    const saved = await CR.saveWalkway(upd);
-                    layer.feature = saved;
-                    layer.setLatLngs(control.map(function (c) { return [c[1], c[0]]; }));
-                } else {
-                    const control = (p.control && Array.isArray(p.control)) ? p.control : (f.geometry.coordinates || []);
-                    const smooth = catmullRom(control, CURVE_SAMPLES, CURVE_ALPHA);
-                    const upd = { type: "Feature", geometry: { type: "LineString", coordinates: smooth }, properties: Object.assign({}, p, { curved: true, control: control, _id: p._id }) };
-                    const saved = await CR.saveWalkway(upd);
-                    layer.feature = saved;
-                    layer.setLatLngs(smooth.map(function (c) { return [c[1], c[0]]; }));
-                }
-                updateWalkwayPanel(mapInst, layer, wl, setSel);
-            });
-
-            const ed = panel.querySelector("#wp-edit");
-            if (ed) ed.addEventListener("click", function () {
-                new L.EditToolbar.Edit(mapInst, { featureGroup: wl }).enable();
-            });
-
-            const del = panel.querySelector("#wp-delete");
-            if (del) del.addEventListener("click", async function () {
-                if (!confirm("Delete this walkway segment?")) return;
-                if (p._id) {
-                    const ok = await CR.deleteWalkway(p._id);
-                    if (ok) {
-                        wl.removeLayer(layer);
-                        panel.innerHTML = "<em style='opacity:.7'>Select a walkway segment…</em>";
-                        setSel(null);
-                    }
-                }
-            });
+            // Simplified: remove legacy overlay controls to avoid conflicts.
+            const panel = document.getElementById("walkway-panel");
+            if (panel) panel.remove();
+            const editBar = document.getElementById("walkway-editbar");
+            if (editBar) editBar.remove();
         }
 
         /**
@@ -508,6 +643,7 @@
             boxState = { start: null, rect: null, mask: null };
             map._container.style.cursor = "crosshair";
             map.on("mousedown", onBoxMouseDown);
+            multiSelectMode = true;
         }
 
         /**
@@ -522,6 +658,7 @@
             if (boxState && boxState.rect) { boxState.rect.remove(); }
             if (boxState && boxState.mask) { boxState.mask.remove(); }
             boxState = null;
+            multiSelectMode = false;
         }
 
         /**
@@ -561,10 +698,10 @@
             if (!editMode || !boxState || !boxState.rect) return;
             const bounds = boxState.rect.getBounds();
             selectWalkwaysInRect(walkwayLayer, bounds, multiSelection);
-            updateWalkwayPanel(map, selectedWalkwayLayer || { feature: { properties: {} } }, walkwayLayer, function () {});
             map.off("mousemove", onBoxMouseMove);
             map.off("mouseup", onBoxMouseUp);
             if (boxState.rect) { boxState.rect.remove(); boxState.rect = null; }
+            refreshSelectionStyles(walkwayLayer, multiSelection);
         }
 
         /**
@@ -582,15 +719,55 @@
                 if (!id) return;
                 const insideRatio = lengthInsideRect(layer.feature, poly);
                 if (insideRatio >= 0.5) {
-                    if (!selection.has(id)) {
-                        selection.add(id);
-                        if (layer.setStyle) layer.setStyle({ color: "#0e8", weight: 5, opacity: 1.0 });
-                    } else {
-                        selection.delete(id);
-                        if (layer.setStyle) layer.setStyle({ color: "rgb(16,124,111)", weight: 3, opacity: 1.0 });
-                    }
+                    selection.add(id);
                 }
             });
+        }
+
+        /**
+         * Launch a polygon draw to delete enclosed walkway segments.
+         */
+        function startPolygonDelete() {
+            endBoxSelect();
+            if (deletePolygonDraw) deletePolygonDraw.disable();
+            deletePolygonDraw = new L.Draw.Polygon(map, { shapeOptions: DELETE_POLYGON_STYLE, showArea: false, allowIntersection: true });
+            deletePolygonDraw.enable();
+            map.once(L.Draw.Event.CREATED, async function (evt) {
+                const polyLayer = evt.layer;
+                const poly = polyLayer.toGeoJSON();
+                deleteWalkwaysInPolygon(walkwayLayer, walkwayFeatures, poly);
+                map.removeLayer(polyLayer);
+            });
+        }
+
+        /**
+         * Remove walkway segments fully inside a polygon.
+         * @param {L.GeoJSON} wl
+         * @param {GeoJSON.Feature[]} store
+         * @param {GeoJSON.Feature} polygon
+         */
+        async function deleteWalkwaysInPolygon(wl, store, polygon) {
+            const toRemove = [];
+            wl.eachLayer(function (l) {
+                const f = l.feature;
+                if (!f || f.geometry.type !== "LineString") return;
+                const id = f.properties && f.properties._id;
+                if (!id) return;
+                let inside = false;
+                try {
+                    inside = turf.booleanWithin(f, polygon);
+                } catch (_) { inside = false; }
+                if (inside) toRemove.push({ layer: l, id: id });
+            });
+
+            for (const item of toRemove) {
+                await CR.deleteWalkway(item.id);
+                wl.removeLayer(item.layer);
+                const idx = store.findIndex(function (f) { return f.properties && f.properties._id === item.id; });
+                if (idx >= 0) store.splice(idx, 1);
+                multiSelection.delete(item.id);
+            }
+            refreshSelectionStyles(wl, multiSelection);
         }
 
         /**
@@ -636,6 +813,7 @@
             });
             toRemove.forEach(function (l) { wl.removeLayer(l); });
             selection.clear();
+            refreshSelectionStyles(wl, selection);
             updateWalkwayPanel(map, selectedWalkwayLayer || { feature: { properties: {} } }, wl, function () {});
         }
 
@@ -705,6 +883,108 @@
             }
             return best ? best.c : coord;
         }
+
+        /**
+         * Magnetizes a walkway polyline:
+         *  - Each vertex snaps to the nearest walkway segment or node within snapMeters.
+         *  - If start/end are close, auto-closes the loop.
+         */
+        function magnetizeWalkwayPolyline(mapInst, coords, walkways, nodes, snapMeters) {
+            if (!coords || coords.length < 2) return coords;
+
+            function snapToNodes(c) {
+                var p = L.latLng(c[1], c[0]);
+                var best = null;
+                for (var i = 0; i < nodes.length; i++) {
+                    var q = L.latLng(nodes[i][1], nodes[i][0]);
+                    var d = mapInst.distance(p, q);
+                    if (d <= snapMeters && (!best || d < best.d)) {
+                        best = { d: d, c: nodes[i] };
+                    }
+                }
+                return best ? best.c : c;
+            }
+
+            function snapToWalkwaySegments(c) {
+                const clickLL = L.latLng(c[1], c[0]);
+                const clickPt = mapInst.project(clickLL);
+                let best = null;
+
+                (walkways || []).forEach(function (f) {
+                    if (!f.geometry || f.geometry.type !== "LineString") return;
+                    const segCoords = f.geometry.coordinates || [];
+                    if (segCoords.length < 2) return;
+
+                    for (let i = 0; i < segCoords.length - 1; i++) {
+                        const A = segCoords[i];
+                        const B = segCoords[i + 1];
+                        const aLL = L.latLng(A[1], A[0]);
+                        const bLL = L.latLng(B[1], B[0]);
+                        const aPt = mapInst.project(aLL);
+                        const bPt = mapInst.project(bLL);
+
+                        const vx = bPt.x - aPt.x;
+                        const vy = bPt.y - aPt.y;
+                        const wx = clickPt.x - aPt.x;
+                        const wy = clickPt.y - aPt.y;
+
+                        const vv = vx * vx + vy * vy || 1e-12;
+                        let t = (vx * wx + vy * wy) / vv;
+                        if (t < 0) t = 0;
+                        if (t > 1) t = 1;
+
+                        const projX = aPt.x + t * vx;
+                        const projY = aPt.y + t * vy;
+                        const projLL = mapInst.unproject(L.point(projX, projY));
+
+                        const dist = mapInst.distance(clickLL, projLL);
+                        if (dist <= snapMeters && (!best || dist < best.dist)) {
+                            best = {
+                                dist: dist,
+                                coord: [projLL.lng, projLL.lat]
+                            };
+                        }
+                    }
+                });
+
+                return best ? best.coord : c;
+            }
+
+            // 1) snap every vertex
+            const snapped = coords.map(function (c) {
+                let s = snapToWalkwaySegments(c);
+                if (s === c) s = snapToNodes(c);
+                return s;
+            });
+
+            // 2) auto-close loops if start & end are almost the same
+            if (snapped.length > 2) {
+                const firstLL = L.latLng(snapped[0][1], snapped[0][0]);
+                const lastLL = L.latLng(snapped[snapped.length - 1][1], snapped[snapped.length - 1][0]);
+                if (mapInst.distance(firstLL, lastLL) <= snapMeters) {
+                    snapped[snapped.length - 1] = snapped[0].slice();
+                }
+            }
+
+            // 3) remove nearly duplicate vertices
+            const cleaned = [];
+            for (let i = 0; i < snapped.length; i++) {
+                const c = snapped[i];
+                if (!cleaned.length) {
+                    cleaned.push(c);
+                } else {
+                    const prev = cleaned[cleaned.length - 1];
+                    const d = mapInst.distance(
+                        L.latLng(prev[1], prev[0]),
+                        L.latLng(c[1], c[0])
+                    );
+                    if (d > 0.1) cleaned.push(c);
+                }
+            }
+
+            return cleaned.length >= 2 ? cleaned : snapped;
+        }
+
 
         /**
          * Splits a polyline coordinate array into consecutive 2-point segments.
@@ -823,6 +1103,259 @@
             const ww = Math.max(0, Math.min(1, 1 - (w || 0)));
             const ax = a ? a[0] : 0, ay = a ? a[1] : 0, bx = b ? b[0] : 0, by = b ? b[1] : 0;
             return [ax + (bx - ax) * ww, ay + (by - ay) * ww];
+        }
+
+        /**
+         * Find the closest point on any existing walkway line to a given coordinate.
+         * If within thresholdMeters, returns info for snapping and splitting.
+         * @param {L.Map} mapInst
+         * @param {[number,number]} coord [lng,lat] of the point to snap
+         * @param {GeoJSON.Feature[]} walkways
+         * @param {number} thresholdMeters
+         * @returns {{
+         *   feature: GeoJSON.Feature,
+         *   snappedCoord: [number,number],
+         *   segmentIndex: number,
+         *   t: number,
+         *   dist: number
+         * }|null}
+         */
+        function findClosestSnapOnWalkways(mapInst, coord, walkways, thresholdMeters) {
+            const clickLL = L.latLng(coord[1], coord[0]);
+            const clickPt = mapInst.project(clickLL);
+
+            let best = null;
+
+            walkways.forEach(function (f) {
+                if (!f.geometry || f.geometry.type !== "LineString") return;
+                const coords = f.geometry.coordinates || [];
+                if (coords.length < 2) return;
+
+                for (let i = 0; i < coords.length - 1; i++) {
+                    const A = coords[i];
+                    const B = coords[i + 1];
+
+                    const aLL = L.latLng(A[1], A[0]);
+                    const bLL = L.latLng(B[1], B[0]);
+                    const aPt = mapInst.project(aLL);
+                    const bPt = mapInst.project(bLL);
+
+                    const vx = bPt.x - aPt.x;
+                    const vy = bPt.y - aPt.y;
+                    const wx = clickPt.x - aPt.x;
+                    const wy = clickPt.y - aPt.y;
+
+                    const vv = vx * vx + vy * vy || 1e-12;
+                    let t = (vx * wx + vy * wy) / vv;
+                    if (t < 0) t = 0;
+                    if (t > 1) t = 1;
+
+                    const projX = aPt.x + t * vx;
+                    const projY = aPt.y + t * vy;
+                    const projLL = mapInst.unproject(L.point(projX, projY));
+
+                    const dist = mapInst.distance(clickLL, projLL);
+                    if (dist <= thresholdMeters && (!best || dist < best.dist)) {
+                        best = {
+                            feature: f,
+                            snappedCoord: [projLL.lng, projLL.lat],
+                            segmentIndex: i,
+                            t: t,
+                            dist: dist
+                        };
+                    }
+                }
+            });
+
+            return best;
+        }
+
+        /**
+         * Split a walkway feature at the given snapped point.
+         * Replaces the original feature with two new features, updates the layer + array.
+         * @param {L.Map} mapInst
+         * @param {L.GeoJSON} walkwayLayer
+         * @param {GeoJSON.Feature[]} walkwayFeatures
+         * @param {{
+         *   feature: GeoJSON.Feature,
+         *   snappedCoord: [number,number],
+         *   segmentIndex: number
+         * }} snapInfo
+         * @param {(layer:L.Layer)=>void} onAttach
+         * @returns {Promise<void>}
+         */
+        async function splitWalkwayAtPoint(mapInst, walkwayLayer, walkwayFeatures, snapInfo, onAttach) {
+            const orig = snapInfo.feature;
+            if (!orig.geometry || orig.geometry.type !== "LineString") return;
+
+            const coords = orig.geometry.coordinates.slice();
+            const j = snapInfo.segmentIndex;
+            const A = coords[j];
+            const B = coords[j + 1];
+            const P = snapInfo.snappedCoord;
+
+            // If we're essentially at an endpoint, no real split needed.
+            const same = function (c1, c2) {
+                return Math.abs(c1[0] - c2[0]) < 1e-10 && Math.abs(c1[1] - c2[1]) < 1e-10;
+            };
+            const atA = same(P, A);
+            const atB = same(P, B);
+
+            if (atA || atB) {
+                // No split, just keep endpoints as-is.
+                return;
+            }
+
+            const before = coords.slice(0, j + 1);
+            const after = coords.slice(j + 1);
+
+            const firstCoords = before.concat([P]);
+            const secondCoords = [P].concat(after);
+
+            const baseProps = Object.assign({}, orig.properties || {});
+            delete baseProps._id;  // let server assign new ids
+            delete baseProps.segmentIndex;
+
+            const f1 = {
+                type: "Feature",
+                geometry: { type: "LineString", coordinates: firstCoords },
+                properties: Object.assign({}, baseProps)
+            };
+
+            const f2 = {
+                type: "Feature",
+                geometry: { type: "LineString", coordinates: secondCoords },
+                properties: Object.assign({}, baseProps)
+            };
+
+            const origId = orig.properties && orig.properties._id;
+
+            // Remove the original feature from memory
+            const idx = walkwayFeatures.findIndex(f => f.properties && f.properties._id === origId);
+            if (idx >= 0) walkwayFeatures.splice(idx, 1);
+
+            // Remove the original layer from map
+            let layerToRemove = null;
+            walkwayLayer.eachLayer(function (l) {
+                if (l.feature && l.feature.properties && l.feature.properties._id === origId) {
+                    layerToRemove = l;
+                }
+            });
+            if (layerToRemove) walkwayLayer.removeLayer(layerToRemove);
+
+            // Persist new segments
+            const saved1 = await CR.saveWalkway(f1);
+            const saved2 = await CR.saveWalkway(f2);
+
+            walkwayFeatures.push(saved1, saved2);
+
+            // Add them back to the map
+            function addWalkwayFeature(saved) {
+                const g = L.geoJSON(saved, {
+                    style: function () { return { color: "rgb(16,124,111)", weight: 3 }; }
+                }).addTo(walkwayLayer);
+                g.eachLayer(function (ll) { onAttach(ll); });
+            }
+
+            addWalkwayFeature(saved1);
+            addWalkwayFeature(saved2);
+        }
+
+    }
+
+    /**
+     * Collect unique node candidates (endpoints) from all walkway features for snapping.
+     * @param {GeoJSON.Feature[]} walkwayFeatures
+     * @returns {Array<[number,number]>}
+     */
+    function collectWalkwayNodes(walkwayFeatures) {
+        const nodes = [];
+        const seen = new Set();
+        (walkwayFeatures || []).forEach(function (f) {
+            if (!f.geometry || f.geometry.type !== "LineString") return;
+            const coords = f.geometry.coordinates || [];
+            coords.forEach(function (c) {
+                const key = c[0] + "," + c[1];
+                if (seen.has(key)) return;
+                seen.add(key);
+                nodes.push([c[0], c[1]]);
+            });
+        });
+        return nodes;
+    }
+
+    /**
+     * Remove nearly duplicate consecutive vertices.
+     * @param {L.Map} mapInst
+     * @param {Array<[number,number]>} coords
+     * @returns {Array<[number,number]>}
+     */
+    function dedupePolyline(mapInst, coords) {
+        const cleaned = [];
+        for (let i = 0; i < coords.length; i++) {
+            const c = coords[i];
+            if (!cleaned.length) {
+                cleaned.push(c);
+            } else {
+                const prev = cleaned[cleaned.length - 1];
+                const d = mapInst.distance(
+                    L.latLng(prev[1], prev[0]),
+                    L.latLng(c[1], c[0])
+                );
+                if (d > 0.05) cleaned.push(c);
+            }
+        }
+        return cleaned.length >= 2 ? cleaned : coords;
+    }
+
+    /**
+     * Snap edited polyline vertices to nearest known nodes within tolerance.
+     * @param {L.Map} mapInst
+     * @param {Array<[number,number]>} coords
+     * @param {Array<[number,number]>} nodes
+     * @param {number} tolMeters
+     * @returns {Array<[number,number]>}
+     */
+    function snapEditedPolyline(mapInst, coords, nodes, tolMeters) {
+        const snapped = coords.map(function (c) {
+            let best = null;
+            const ll = L.latLng(c[1], c[0]);
+            nodes.forEach(function (n) {
+                const d = mapInst.distance(ll, L.latLng(n[1], n[0]));
+                if (d <= tolMeters && (!best || d < best.d)) best = { d: d, c: n };
+            });
+            return best ? best.c : c;
+        });
+        return dedupePolyline(mapInst, snapped);
+    }
+
+    /**
+     * Persist an edited walkway layer back to the server, snapping endpoints to nearby nodes.
+     * @param {L.Map} mapInst
+     * @param {L.Layer} layer
+     * @param {GeoJSON.Feature[]} walkwayFeatures
+     * @returns {Promise<void>}
+     */
+    async function persistEditedWalkway(mapInst, layer, walkwayFeatures) {
+        const props = layer.feature && layer.feature.properties ? layer.feature.properties : {};
+        const latlngs = layer.getLatLngs();
+        if (!latlngs || !latlngs.length) return;
+        const coords = latlngs.map(function (ll) { return [ll.lng, ll.lat]; });
+        const nodes = collectWalkwayNodes(walkwayFeatures);
+        const snappedCoords = snapEditedPolyline(mapInst, coords, nodes, EDIT_SNAP_METERS);
+        const updated = {
+            type: "Feature",
+            geometry: { type: "LineString", coordinates: snappedCoords },
+            properties: Object.assign({}, props)
+        };
+        const saved = await CR.saveWalkway(updated);
+        layer.feature = saved;
+        layer.setLatLngs(snappedCoords.map(function (c) { return [c[1], c[0]]; }));
+        const idx = walkwayFeatures.findIndex(function (f) { return f.properties && props._id && f.properties._id === props._id; });
+        if (idx >= 0) {
+            walkwayFeatures[idx] = saved;
+        } else {
+            walkwayFeatures.push(saved);
         }
     }
 
