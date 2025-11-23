@@ -8,15 +8,23 @@
      * @returns {L.Map} Leaflet map instance.
      */
     function initMap(elementId) {
+        const campusCenter = [40.69803104641056, -124.19603359276114];
+        const bounds = L.latLngBounds(
+            [40.6935, -124.2015], // SW
+            [40.7025, -124.1905]  // NE
+        );
+
         const map = L.map(elementId, {
             zoomControl: false,
-            minZoom: 14,
+            minZoom: 15,
             maxZoom: 22,
+            maxBounds: bounds.pad(0.1),
+            maxBoundsViscosity: 0.8,
             zoomSnap: 0.25,
             zoomDelta: 0.5,
             wheelDebounceTime: 10,
             preferCanvas: false
-        }).setView([40.69803104641056, -124.19603359276114], 20);
+        }).setView(campusCenter, 20);
 
         L.control.zoom({ position: "bottomright" }).addTo(map);
         const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
