@@ -56,6 +56,15 @@
             </p>
 
             <fieldset>
+                <legend>Search</legend>
+                <label for="route-start-search">Start (building, room, entrance)</label>
+                <input id="route-start-search" type="search" placeholder="e.g., Humanities, HU-101" autocomplete="off" />
+                <label for="route-end-search">Destination (building, room)</label>
+                <input id="route-end-search" type="search" placeholder="e.g., Science, SC-210" autocomplete="off" />
+                <small class="muted">We route to the nearest entrance of your destination.</small>
+            </fieldset>
+
+            <fieldset>
                 <legend>Pick points</legend>
                 <div class="button-row">
                     <button class="btn" id="route-set-start">Set start</button>

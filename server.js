@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const session = require("express-session");
+const FileStore = require("session-file-store")(session);
+const fs = require("fs");
 const flash = require("connect-flash");
 const compression = require("compression");
 const helmet = require("helmet");
@@ -21,6 +23,7 @@ function createApp() {
 
     app.set("view engine", "ejs");
     app.set("views", path.join(__dirname, "views"));
+    app.disable("etag"); // force fresh responses
 
     app.use(
         helmet({
@@ -60,14 +63,30 @@ function createApp() {
     );
     app.use(compression());
     app.use(morgan("dev"));
+    app.use((req, res, next) => {
+        res.setHeader("Cache-Control", "no-store");
+        next();
+    });
     app.use(express.json({ limit: "2mb" }));
     app.use(express.urlencoded({ extended: true }));
+    const sessionDir = path.join(__dirname, "sessions");
+    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
+
     app.use(
         session({
             secret: process.env.SESSION_SECRET || "dev-secret",
             resave: false,
             saveUninitialized: false,
-            cookie: { sameSite: "lax" }
+            store: new FileStore({
+                path: sessionDir,
+                retries: 0,
+                ttl: Number(process.env.SESSION_TTL_SECONDS || 60 * 60 * 24 * 7) // default 7 days
+            }),
+            cookie: {
+                sameSite: "lax",
+                maxAge: Number(process.env.SESSION_COOKIE_MS || 1000 * 60 * 60 * 24 * 7), // default 7 days
+                httpOnly: true
+            }
         })
     );
     app.use(flash());

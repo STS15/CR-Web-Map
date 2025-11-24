@@ -227,6 +227,21 @@
     }
 
     /**
+     * Lightweight search over features by name/number/building prefix.
+     * @param {Array<Object>} items
+     * @param {string} query
+     * @param {number} limit
+     */
+    function simpleSearch(items, query, limit) {
+        if (!query) return [];
+        const q = query.trim().toLowerCase();
+        return items.filter(function (item) {
+            const hay = (item.searchKey || "").toLowerCase();
+            return hay.includes(q);
+        }).slice(0, limit || 8);
+    }
+
+    /**
      * Snap a coordinate to the nearest walkway (LineString) using turf.
      * @param {L.Map} mapInst
      * @param {GeoJSON.FeatureCollection} walkwaysFc
@@ -609,6 +624,8 @@
         if (!sidebar) return;
 
         const MAX_SNAP_METERS = 150;
+        const startSearchInput = document.getElementById("route-start-search");
+        const endSearchInput = document.getElementById("route-end-search");
         const btnStart = document.getElementById("route-set-start");
         const btnEnd = document.getElementById("route-set-end");
         const btnClear = document.getElementById("route-clear");
@@ -621,6 +638,7 @@
         let endCoord = null;
         let startSnapDist = null;
         let endSnapDist = null;
+        let featureIndex = null;
         let startMarker = null;
         let endMarker = null;
         let routeLine = null;
@@ -652,6 +670,8 @@
             routeLine = null;
             distanceLabel.textContent = "Distance: --";
             updateLabels();
+            if (startSearchInput) startSearchInput.value = "";
+            if (endSearchInput) endSearchInput.value = "";
         }
 
         async function recomputeRoute() {
@@ -743,6 +763,93 @@
             updateLabels();
             recomputeRoute();
         });
+
+        // Build feature index for search
+        featureIndex = buildFeatureIndex();
+
+        function buildFeatureIndex() {
+            const items = [];
+            const addItem = function (f) {
+                const p = f.properties || {};
+                const id = p._id;
+                const type = p.type;
+                const name = p.name || "";
+                const number = p.number || "";
+                const buildingId = p.buildingId || "";
+                const searchKey = [name, number, buildingId, type].filter(Boolean).join(" ");
+                items.push({ id: id, type: type, name: name, number: number, buildingId: buildingId, geom: f.geometry, searchKey: searchKey, raw: f });
+            };
+            (walkwaysFc.features || []).forEach(addItem); // entrances may be part of features
+            return items;
+        }
+
+        function resolveFeatureToCoord(item, role) {
+            if (!item || !item.raw || !item.raw.geometry) return null;
+            const p = item.raw.properties || {};
+
+            if (p.type === "entrance") {
+                const c = item.raw.geometry.coordinates;
+                return { coord: c, label: p.name || "Entrance" };
+            }
+
+            if (p.type === "room" && p.buildingId) {
+                // look up building entrances
+                const entrances = featureIndex.filter(function (x) { return x.type === "entrance" && x.buildingId === p.buildingId; });
+                if (entrances.length) {
+                    const nearest = entrances[0];
+                    return { coord: nearest.raw.geometry.coordinates, label: nearest.name || "Entrance" };
+                }
+            }
+
+            if (p.type === "building") {
+                // pick nearest entrance if available
+                const entrances = featureIndex.filter(function (x) { return x.type === "entrance" && x.buildingId === p._id; });
+                if (entrances.length) {
+                    const nearest = entrances[0];
+                    return { coord: nearest.raw.geometry.coordinates, label: nearest.name || "Entrance" };
+                }
+                // fallback centroid
+                if (item.raw.geometry.type === "Polygon") {
+                    const c = turf.centerOfMass(item.raw);
+                    return { coord: c.geometry.coordinates, label: p.name || "Building centroid" };
+                }
+            }
+
+            // fallback to point geom
+            return item.raw.geometry.coordinates ? { coord: item.raw.geometry.coordinates, label: p.name || role } : null;
+        }
+
+        function handleSearch(inputEl, role) {
+            if (!inputEl) return;
+            inputEl.addEventListener("change", function () {
+                const q = inputEl.value;
+                if (!q || !featureIndex) return;
+                const matches = simpleSearch(featureIndex, q, 1);
+                if (!matches.length) return;
+                const resolved = resolveFeatureToCoord(matches[0], role);
+                if (!resolved) return;
+                const snapped = snapToWalkways(mapInst, walkwaysFc, resolved.coord, MAX_SNAP_METERS);
+                if (!snapped) return;
+                const latlng = L.latLng(snapped.coord[1], snapped.coord[0]);
+
+                if (role === "start") {
+                    startCoord = snapped.coord;
+                    startSnapDist = snapped.distMeters;
+                    if (!startMarker) startMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
+                    else startMarker.setLatLng(latlng);
+                } else {
+                    endCoord = snapped.coord;
+                    endSnapDist = snapped.distMeters;
+                    if (!endMarker) endMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
+                    else endMarker.setLatLng(latlng);
+                }
+                updateLabels();
+                recomputeRoute();
+            });
+        }
+
+        handleSearch(startSearchInput, "start");
+        handleSearch(endSearchInput, "end");
 
         clearRoute();
     }
