@@ -1,8 +1,8 @@
 const express = require("express");
 const path = require("path");
 const session = require("express-session");
-const FileStore = require("session-file-store")(session);
-const fs = require("fs");
+const PgStore = require("connect-pg-simple")(session);
+const { pool } = require("./db");
 const flash = require("connect-flash");
 const compression = require("compression");
 const helmet = require("helmet");
@@ -69,23 +69,21 @@ function createApp() {
     });
     app.use(express.json({ limit: "2mb" }));
     app.use(express.urlencoded({ extended: true }));
-    const sessionDir = path.join(__dirname, "sessions");
-    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
-
     app.use(
         session({
             secret: process.env.SESSION_SECRET || "dev-secret",
             resave: false,
             saveUninitialized: false,
-            store: new FileStore({
-                path: sessionDir,
-                retries: 0,
-                ttl: Number(process.env.SESSION_TTL_SECONDS || 60 * 60 * 24 * 7) // default 7 days
+            store: new PgStore({
+                pool,
+                tableName: "session",
+                createTableIfMissing: true
             }),
             cookie: {
                 sameSite: "lax",
                 maxAge: Number(process.env.SESSION_COOKIE_MS || 1000 * 60 * 60 * 24 * 7), // default 7 days
                 httpOnly: true
+                // set secure: true when behind HTTPS/production
             }
         })
     );
@@ -149,9 +147,23 @@ function handleAdmin(req, res) {
 function handleLogin(req, res) {
     const { password } = req.body;
     if ((process.env.ADMIN_PASSWORD || "admin") === password) {
-        req.session.isAdmin = true;
-        req.flash("success", "Logged in.");
-        res.redirect("/admin");
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error("Session regenerate failed", err);
+                req.flash("error", "Login failed. Please try again.");
+                return res.redirect("/");
+            }
+            req.session.isAdmin = true;
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    console.error("Session save failed", saveErr);
+                    req.flash("error", "Login failed. Please try again.");
+                    return res.redirect("/");
+                }
+                req.flash("success", "Logged in.");
+                res.redirect("/admin");
+            });
+        });
     } else {
         req.flash("error", "Invalid password.");
         res.redirect("/");
