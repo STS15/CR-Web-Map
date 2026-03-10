@@ -64,6 +64,8 @@
         return map;
     }
 
+    
+
     /**
      * Loads GeoJSON features from the server.
      * @returns {Promise<GeoJSON.FeatureCollection>} Feature collection.

@@ -55,7 +55,8 @@ function createApp() {
                         "'self'",
                         "https://fonts.gstatic.com"
                     ],
-                    "connect-src": ["'self'"],
+                    // Allow connections to unpkg.com for loading source maps and resources
+                    "connect-src": ["'self'", "https://unpkg.com"],
                     "frame-src": ["'self'"]
                 }
             }

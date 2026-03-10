@@ -19,19 +19,40 @@
 
         const fc = await CR.fetchFeatures();
         const allFeatures = fc.features || [];
-        const featureLayer = CR.createFeaturesLayer(fc).addTo(map);
+        const featureLayer = CR.createFeaturesLayer(fc)
+        //joe added
+        const editableLayers = new L.FeatureGroup().addTo(map);
 
         const wfc = await CR.fetchWalkways();
         const sanitizedWalkways = sanitizeFeatureCollection(wfc);
         const walkwayFeatures = (sanitizedWalkways.features || []).slice();
-        const walkwayLayer = CR.createWalkwaysLayer({ type: "FeatureCollection", features: walkwayFeatures }).addTo(map);
+        const walkwayLayer = CR.createWalkwaysLayer({ type: "FeatureCollection", features: walkwayFeatures })
 
+
+        //joe added
+        featureLayer.eachLayer(l => editableLayers.addLayer(l));
+        walkwayLayer.eachLayer(l => editableLayers.addLayer(l));
+
+
+        //Joe edited code
         // Persist edits made via Leaflet draw editor
         map.on(L.Draw.Event.EDITED, function (e) {
             const layers = e.layers;
             layers.eachLayer(async function (layer) {
-                if (!layer.feature || !layer.feature.properties || layer.feature.geometry.type !== "LineString") return;
-                await persistEditedWalkway(map, layer, walkwayFeatures);
+                if (!layer.feature || !layer.feature.properties) return;
+        
+                const geomType = layer.feature.geometry.type;
+        
+                if (geomType === "LineString") {
+                    // Existing logic for walkways
+                    await persistEditedWalkway(map, layer, walkwayFeatures);
+                } else if (geomType === "Polygon" || geomType === "MultiPolygon") {
+                    // NEW: Logic for building/room polygons
+                    const updatedFeature = layer.toGeoJSON();
+                    // Calls your existing save function in client.js
+                    await CR.saveFeature(updatedFeature); 
+                    console.log("Polygon updated and saved to DB.");
+                }
             });
         });
         window.CR.onMenuAction = function (action) {
@@ -93,6 +114,7 @@
         let multiSelectMode = false;
         let deletePolygonDraw = null;
 
+        //Joe edited
         const drawControl = new L.Control.Draw({
             position: "topleft",
             draw: {
@@ -107,9 +129,68 @@
                 circlemarker: false,
                 marker: { icon: new L.Icon.Default() }
             },
-            edit: { featureGroup: walkwayLayer, remove: true }
+            edit: { 
+                featureGroup: editableLayers, // Use the dedicated group
+                poly: {
+                    allowIntersection: false },//prevents polgyons from overlapping 
+                remove: true
+            }
         });
         map.addControl(drawControl);
+
+        //joe added
+        // admin.js - Add these near your other map.on listeners
+        // 1. When editing starts
+        map.on(L.Draw.Event.EDITSTART, function () {
+            editableLayers.eachLayer(l => {
+            // Disable popups so they don't block the mouse
+                if (l.closePopup) l.closePopup().unbindPopup();
+
+                // Enable the dragging plugin for the polygon body
+                if (l.dragging) l.dragging.enable();
+
+                // Change style to show it's "grabbable"
+                if (l.setStyle) l.setStyle({ fillOpacity: 0.5, weight: 4 });
+
+                // Disable map panning only when hovering over a shape
+                l.on('mouseover', () => map.dragging.disable());
+                l.on('mouseout', () => map.dragging.enable());
+            });
+            console.log("Edit Mode: Handles active, body dragging enabled.");
+        });
+
+        // 2. When editing stops (Save or Cancel)
+        map.on(L.Draw.Event.EDITSTOP, function () {
+            editableLayers.eachLayer(l => {
+             // Restore popups
+                if (window.CR && CR._bindPopupForFeature) {
+                    CR._bindPopupForFeature(l.feature, l);
+                }
+        
+                // Remove temporary hover listeners
+                l.off('mouseover');
+                l.off('mouseout');
+
+                // Disable dragging plugin
+                if (l.dragging) l.dragging.disable();
+
+                // Reset style
+                if (l.setStyle) l.setStyle({ fillOpacity: 0.25, weight: 2 });
+            });
+
+            // FORCE: Ensure map panning and cursor are restored
+            map.dragging.enable();
+            map._container.style.cursor = "";
+            console.log("Edit Mode: Map restored to normal.");
+        });
+
+   
+
+        //Joe added
+        map.on(L.Draw.Event.EDITSTOP, function () {
+            map._container.style.cursor = ""; 
+            console.log("Editor closed/Cancelled.");
+        });
 
         await normalizeWalkways(map, walkwayLayer, walkwayFeatures);
 
