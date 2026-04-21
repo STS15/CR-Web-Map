@@ -621,7 +621,7 @@
      * @param {L.Map} mapInst
      * @param {GeoJSON.FeatureCollection} walkwaysFc
      */
-    function initRouting(mapInst, walkwaysFc) {
+    function initRouting(mapInst, walkwaysFc, featuresLayer) {
         const sidebar = document.getElementById("route-sidebar");
         if (!sidebar) return;
 
@@ -644,6 +644,43 @@
         let startMarker = null;
         let endMarker = null;
         let routeLine = null;
+
+        //add generateDirections function to create turn-by-turn instructions from path nodes JN
+        function generateDirections(pathNodes) {
+            if (pathNodes.length < 2) return [];
+            const steps = [];
+            let currentDist = 0;
+            let currentBearing = turf.bearing(turf.point(pathNodes[0]), turf.point(pathNodes[1]));
+
+            for (let i = 0; i < pathNodes.length - 1; i++) {
+                const p1 = turf.point(pathNodes[i]);
+                const p2 = turf.point(pathNodes[i+1]);
+                const dist = turf.distance(p1, p2, { units: "meters" });
+                const bearing = turf.bearing(p1, p2);
+
+                // Calculate the turn angle difference
+                let diff = bearing - currentBearing;
+                while (diff > 180) diff -= 360;
+                while (diff < -180) diff += 360;
+
+                // If the turn is sharp enough (> 30 degrees), log a turn instruction
+                if (Math.abs(diff) > 30 && i > 0) {
+                    if (currentDist > 0) {
+                        steps.push(`Walk straight for ${Math.round(currentDist)}m.`);
+                        currentDist = 0;
+                    }
+                    if (Math.abs(diff) > 150) steps.push(`Turn around.`);
+                    else if (diff > 0) steps.push(`Turn right.`);
+                    else steps.push(`Turn left.`);
+                }
+                currentDist += dist;
+                currentBearing = bearing; // Update bearing for next segment
+            }
+            if (currentDist > 0) {
+                steps.push(`Walk straight for ${Math.round(currentDist)}m to your destination.`);
+            }
+            return steps;
+        }        
 
         function formatLabel(coord, dist) {
             if (!coord) return "--";
@@ -671,6 +708,10 @@
             endMarker = null;
             routeLine = null;
             distanceLabel.textContent = "Distance: --";
+            // Clear turn-by-turn directions JN
+            const stepsFieldset = document.getElementById("route-steps-fieldset");
+            if (stepsFieldset) stepsFieldset.style.display = "none";   
+
             updateLabels();
             if (startSearchInput) startSearchInput.value = "";
             if (endSearchInput) endSearchInput.value = "";
@@ -708,6 +749,23 @@
             const m = km * 1000;
             distanceLabel.textContent = "Distance: " + (m < 1000 ? m.toFixed(0) + " m" : km.toFixed(2) + " km");
 
+            // Generate turn-by-turn directions JN
+            const pathNodes = result.path.map(idx => graph.nodes[idx]);
+            const steps = generateDirections(pathNodes);
+            const stepsList = document.getElementById("route-steps-list");
+            const stepsFieldset = document.getElementById("route-steps-fieldset");
+            
+            if (stepsList && stepsFieldset) {
+                stepsList.innerHTML = ""; // Clear old steps
+                steps.forEach(step => {
+                    const li = document.createElement("li");
+                    li.textContent = step;
+                    li.style.paddingBottom = "6px";
+                    stepsList.appendChild(li);
+                });
+                stepsFieldset.style.display = "block"; // Reveal the box
+            }
+
             if (routeLine) mapInst.removeLayer(routeLine);
             routeLine = L.polyline(coords, {
                 weight: 6,
@@ -731,10 +789,11 @@
             clearRoute();
         });
 
-        mapInst.on("click", function (e) {
-            if (!mode) return;
-            const coord = [e.latlng.lng, e.latlng.lat];
+        // Centralized click handler for routing (both map clicks and feature clicks)
+        function processRoutingClick(latlng) {
+            const coord = [latlng.lng, latlng.lat];
             const snapped = snapToWalkways(mapInst, walkwaysFc, coord, MAX_SNAP_METERS);
+            
             if (!snapped) {
                 distanceLabel.textContent = "Distance: (click closer to a walkway)";
                 mode = null;
@@ -764,8 +823,26 @@
             mode = null;
             updateLabels();
             recomputeRoute();
+        }
+
+        // 1. Listen for clicks on empty map areas
+        mapInst.on("click", function (e) {
+            if (!mode) return;
+            processRoutingClick(e.latlng);
         });
 
+        // 2. Listen for clicks on buildings/rooms
+        if (featuresLayer) {
+            featuresLayer.on("click", function (e) {
+                if (!mode) return;
+                
+                // Close the popup that just tried to open
+                mapInst.closePopup();
+
+                // Use the EXACT mouse click location (e.latlng) instead of the building center
+                processRoutingClick(e.latlng);
+            });
+        }
         // Build feature index for search
         featureIndex = buildFeatureIndex();
 

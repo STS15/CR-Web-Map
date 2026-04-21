@@ -27,9 +27,18 @@ function createApp() {
 
     app.use(
         helmet({
+            //disabling hsts 
+            hsts: false,
+
+            //added the following three lines to prevent 403r openstreetmap error JN
+            referrerPolicy: {
+            policy: "strict-origin-when-cross-origin",
+            },
+
             contentSecurityPolicy: {
                 useDefaults: true,
                 directives: {
+                    upgradeInsecureRequests: null,
                     "default-src": ["'self'"],
                     "img-src": [
                         "'self'",
@@ -43,20 +52,20 @@ function createApp() {
                         "'self'",
                         "https://unpkg.com",
                         "'unsafe-inline'",
-                        "'unsafe-eval'",
+                        "'unsafe-eval'"
                     ],
                     "style-src": [
-                        "'self'",
-                        "'unsafe-inline'",
-                        "https://unpkg.com",
-                        "https://fonts.googleapis.com"
+                    "'self'",
+                    "'unsafe-inline'",
+                    "https://unpkg.com",
+                    "https://fonts.googleapis.com"
                     ],
                     "font-src": [
                         "'self'",
                         "https://fonts.gstatic.com"
                     ],
                     // Allow connections to unpkg.com for loading source maps and resources
-                    "connect-src": ["'self'", "https://unpkg.com"],
+                    "connect-src": ["'self'", "https://unpkg.com"], 
                     "frame-src": ["'self'"]
                 }
             }

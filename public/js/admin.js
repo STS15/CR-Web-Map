@@ -20,8 +20,6 @@
         const fc = await CR.fetchFeatures();
         const allFeatures = fc.features || [];
         const featureLayer = CR.createFeaturesLayer(fc)
-        //joe added
-        const editableLayers = new L.FeatureGroup().addTo(map);
 
         const wfc = await CR.fetchWalkways();
         const sanitizedWalkways = sanitizeFeatureCollection(wfc);
@@ -30,6 +28,7 @@
 
 
         //joe added
+        const editableLayers = new L.FeatureGroup().addTo(map);
         featureLayer.eachLayer(l => editableLayers.addLayer(l));
         walkwayLayer.eachLayer(l => editableLayers.addLayer(l));
 
@@ -44,18 +43,44 @@
                 const geomType = layer.feature.geometry.type;
         
                 if (geomType === "LineString") {
-                    // Existing logic for walkways
+                    // Logic for walkways
                     await persistEditedWalkway(map, layer, walkwayFeatures);
                 } else if (geomType === "Polygon" || geomType === "MultiPolygon") {
-                    // NEW: Logic for building/room polygons
+                    // START FIX: Ensure Polygons actually save to the database
                     const updatedFeature = layer.toGeoJSON();
-                    // Calls your existing save function in client.js
-                    await CR.saveFeature(updatedFeature); 
-                    console.log("Polygon updated and saved to DB.");
+                    
+                    // Retain the original ID so it updates instead of duplicates
+                    if (layer.feature.properties._id) {
+                        updatedFeature.properties._id = layer.feature.properties._id;
+                    }
+
+                    const saved = await CR.saveFeature(updatedFeature);
+                    layer.feature = saved;
+                    
+                    // Keep the local array in sync
+                    const idx = allFeatures.findIndex(f => f.properties._id === saved.properties._id);
+                    if (idx >= 0) allFeatures[idx] = saved;
+                    
+                    console.log("Polygon updated and saved to DB:", saved.properties.name);
+                    // END FIX
                 }
             });
         });
         window.CR.onMenuAction = function (action) {
+            // Test buttons for navigation point selection JN
+            if (action === "set-start-nav") {
+                window.CR_routingMode = "start";
+                map._container.style.cursor = "crosshair";
+                console.log("Routing Mode: Click a building or entrance to set the START point.");
+                return;
+            }
+            if (action === "set-end-nav") {
+                window.CR_routingMode = "end";
+                map._container.style.cursor = "crosshair";
+                console.log("Routing Mode: Click a building or entrance to set the END point.");
+                return;
+            }
+
             if (action === "fit-to-campus") {
                 try {
                     const group = L.featureGroup([featureLayer, walkwayLayer]);
@@ -102,6 +127,11 @@
                     return;
                 }
                 deleteSelectedWalkways(walkwayLayer, multiSelection);
+            }
+            //added for network audit feature JN
+            if (action === "audit-network") {
+                auditNetworkConnectivity(map, walkwayFeatures, walkwayLayer);
+                return;
             }
         };
 
@@ -201,6 +231,43 @@
                 clearSegmentHandles(segmentHandles);
                 segmentHandles = showSegmentHandles(map, layer, CURVE_SAMPLES, CURVE_ALPHA, function (newGeom, newControl, props) { return persistBend(layer, newGeom, newControl, props); });
             });
+        });
+
+        // Listener for selecting Buildings/Entrances for navigation JN
+        // ADD NAVIGATION CLICK LISTENER HERE
+        editableLayers.on("click", function (e) {
+            if (!window.CR_routingMode) return;
+
+            const layer = e.layer;
+            const feature = layer.feature;
+            if (!feature || !feature.properties) return;
+
+            // 1. Get the center point (if building) or exact point (if entrance)
+            const targetLatLng = layer.getBounds ? layer.getBounds().getCenter() : layer.getLatLng();
+            const coord = [targetLatLng.lng, targetLatLng.lat];
+
+            // 2. Snap it to the nearest walkway node
+            const snapped = snapCoord(map, coord, nodes, SNAP_METERS);
+            const snappedLatLng = L.latLng(snapped[1], snapped[0]);
+
+            // 3. Drop a temporary marker so you can see it worked
+            const markerColor = window.CR_routingMode === "start" ? "#2e7d32" : "#c62828";
+            const tempMarker = L.circleMarker(snappedLatLng, {
+                radius: 8,
+                fillColor: markerColor,
+                color: "#fff",
+                weight: 2,
+                fillOpacity: 1
+            }).addTo(map);
+
+            console.log(`${window.CR_routingMode.toUpperCase()} point set at:`, snapped);
+
+            // 4. Cleanup: Exit routing mode
+            window.CR_routingMode = null;
+            map._container.style.cursor = "";
+            
+            // Auto-remove the marker after 5 seconds
+            setTimeout(() => map.removeLayer(tempMarker), 5000);
         });
 
         L.DomEvent.on(document, "keydown", async function (e) {
@@ -1422,16 +1489,27 @@
         const latlngs = layer.getLatLngs();
         if (!latlngs || !latlngs.length) return;
         const coords = latlngs.map(function (ll) { return [ll.lng, ll.lat]; });
-        const nodes = collectWalkwayNodes(walkwayFeatures);
+
+        // START FIX: Exclude the current walkway from the snap pool so it doesn't snap to its old self
+        const otherWalkways = walkwayFeatures.filter(f => f.properties._id !== props._id);
+        const nodes = collectWalkwayNodes(otherWalkways);
+        // END FIX
+
         const snappedCoords = snapEditedPolyline(mapInst, coords, nodes, EDIT_SNAP_METERS);
+        
         const updated = {
             type: "Feature",
             geometry: { type: "LineString", coordinates: snappedCoords },
             properties: Object.assign({}, props)
         };
+        
         const saved = await CR.saveWalkway(updated);
+        
+        // Update local layer state
         layer.feature = saved;
         layer.setLatLngs(snappedCoords.map(function (c) { return [c[1], c[0]]; }));
+        
+        // Update master array
         const idx = walkwayFeatures.findIndex(function (f) { return f.properties && props._id && f.properties._id === props._id; });
         if (idx >= 0) {
             walkwayFeatures[idx] = saved;
@@ -1624,6 +1702,118 @@
     function extractIndex(name) {
         var m = String(name).match(/(\d+)$/);
         return m ? parseInt(m[1], 10) : undefined;
+    }
+    /**
+    * Audits the walkway network and highlights disconnected "islands" in red.
+    */
+    function auditNetworkConnectivity(map, walkwayFeatures, walkwayLayer) {
+        if (walkwayFeatures.length === 0) {
+            alert("No walkways to audit!");
+            return;
+        }
+
+        console.log("--- Starting Network Audit ---");
+            
+        // 1. Build adjacency list (Standard connection check)
+        const adjacency = new Map();
+        walkwayFeatures.forEach((f1, i) => {
+            adjacency.set(i, []);
+            walkwayFeatures.forEach((f2, j) => {
+                if (i === j) return;
+                let connected = false;
+                try {
+                    if (turf.booleanIntersects(f1, f2)) {
+                        connected = true;
+                    } else {
+                        for (let c1 of f1.geometry.coordinates) {
+                            const snapped = turf.nearestPointOnLine(f2, turf.point(c1), { units: "meters" });
+                            if (snapped.properties && snapped.properties.dist <= SNAP_METERS) {
+                                connected = true;
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                if (connected) adjacency.get(i).push(j);
+            });
+        });
+
+        // 2. BFS to find the main network
+        const visited = new Set();
+        const components = [];
+        for (let i = 0; i < walkwayFeatures.length; i++) {
+            if (!visited.has(i)) {
+                const component = [];
+                const queue = [i];
+                visited.add(i);
+                while (queue.length > 0) {
+                    const current = queue.shift();
+                    component.push(current);
+                    adjacency.get(current).forEach(neighbor => {
+                        if (!visited.has(neighbor)) {
+                            visited.add(neighbor);
+                            queue.push(neighbor);
+                        }
+                    });
+                }
+                components.push(component);
+            }
+        }
+        components.sort((a, b) => b.length - a.length);
+        const mainNetworkIndices = new Set(components[0]);
+
+        // 3. Prepare the Map layers
+        if (map._gapLayer) map.removeLayer(map._gapLayer);
+        map._gapLayer = L.layerGroup().addTo(map);
+
+        // 4. Process Islands and find Gaps
+        let islandCount = 0;
+        walkwayLayer.eachLayer(layer => {
+            const feat = layer.feature;
+            const featureIndex = walkwayFeatures.findIndex(f => f.properties._id === feat.properties._id);
+                
+            if (!mainNetworkIndices.has(featureIndex)) {
+                islandCount++;
+                layer.setStyle({ color: "#ff0000", weight: 6, dashArray: "10, 10" });
+
+                // Find the closest point between THIS island and the ENTIRE main network
+                let minBridgingDist = Infinity;
+                let bestGapPoint = null;
+
+                mainNetworkIndices.forEach(mainIdx => {
+                    const mainFeat = walkwayFeatures[mainIdx];
+                    // Check every vertex of the island line
+                    feat.geometry.coordinates.forEach(coord => {
+                        const islandPt = turf.point(coord);
+                        const closestOnMain = turf.nearestPointOnLine(mainFeat, islandPt, { units: 'meters' });
+                        const dist = closestOnMain.properties.dist;
+
+                        if (dist < minBridgingDist) {
+                            minBridgingDist = dist;
+                            bestGapPoint = closestOnMain;
+                        }
+                    });
+                });
+
+                // Drop a marker if a valid gap was found
+                if (bestGapPoint && minBridgingDist > SNAP_METERS) {
+                    console.log(`Gap Found: ${minBridgingDist.toFixed(2)}m for feature ${feat.properties._id}`);
+                    L.circleMarker([bestGapPoint.geometry.coordinates[1], bestGapPoint.geometry.coordinates[0]], {
+                        radius: 12,
+                        color: 'yellow',
+                        weight: 4,
+                        fillColor: 'red',
+                        fillOpacity: 1,
+                        pane: 'markerPane' // Ensure it's on top of lines
+                    }).addTo(map._gapLayer)
+                      .bindPopup(`<b>Gap Detected:</b> ${minBridgingDist.toFixed(2)}m from main network.`);
+                }
+            } else {
+                layer.setStyle({ color: "rgb(16,124,111)", weight: 3, dashArray: null });
+            }
+        });
+
+        alert(`Audit Complete: Found ${islandCount} islands. Check the RED lines and YELLOW markers.`);
     }
 
     window.CR = window.CR || {};

@@ -8,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- trying to fix the mobile responsiveness by adding the following line to the css link JN -->
+    <link rel="stylesheet" href="/static/css/styles.css?v=5">
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
@@ -43,7 +44,7 @@
     </div>
 </header>
 
-<main class="map-shell">
+<main class="admin-map-shell">
     <div id="map"></div>
 
     <div class="sidebar" id="route-sidebar">
@@ -78,6 +79,11 @@
                 <div><span class="mono" id="route-start-label">Start: --</span></div>
                 <div><span class="mono" id="route-end-label">End: --</span></div>
                 <div><span class="mono" id="route-distance-label">Distance: --</span></div>
+            </fieldset>
+            <!-- added the following fieldset for step-by-step directions JN -->
+            <fieldset id="route-steps-fieldset" style="display: none; margin-top: 15px;">
+                <legend>Directions</legend>
+                <ol id="route-steps-list" class="muted" style="padding-left: 20px; margin: 0; line-height: 1.5;"></ol>
             </fieldset>
         </main>
     </div>
@@ -169,15 +175,47 @@
             CR.fetchWalkways()
         ]);
 
-        CR.createFeaturesLayer(features).addTo(map);
+        //updated to ignore pop ups so buildings could be clicked on for navigation JN
+        const featuresLayer = CR.createFeaturesLayer(features).addTo(map);
         CR.createWalkwaysLayer(walkways).addTo(map);
 
         if (CR.initRouting) {
-            CR.initRouting(map, walkways);
+            CR.initRouting(map, walkways, featuresLayer); // Added featuresLayer here
         }
+        
         if (CR.initUtilityDrawer) {
             CR.initUtilityDrawer(map);
         }
+
+        //added click handlers for mobile option boxs JN
+        // 1. Sidebar Toggle
+        const sidebar = document.getElementById("route-sidebar");
+        const sidebarHeader = sidebar ? sidebar.querySelector("header") : null;
+        
+        if (sidebarHeader) {
+            sidebarHeader.addEventListener("click", (e) => {
+                e.stopPropagation(); // Stop Leaflet from stealing the click
+                sidebar.classList.toggle("expanded");
+            });
+        }
+
+        // 2. Quick Controls Toggle
+        const utilityDrawer = document.getElementById("utility-drawer");
+        const utilityHeader = utilityDrawer ? utilityDrawer.querySelector("header") : null;
+        const utilityCloseBtn = document.getElementById("utility-close");
+
+        if (utilityHeader && utilityCloseBtn) {
+            utilityHeader.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // If they tap the header (but miss the actual close button), close it anyway
+                if (e.target !== utilityCloseBtn) {
+                    utilityCloseBtn.click();
+                }
+            });
+        }
+
+        // Forces Leaflet and the prefetch cache to recognize the new mobile dimensions JN
+        setTimeout(() => { map.invalidateSize(); }, 300);
     })();
 </script>
 

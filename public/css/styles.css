@@ -26,8 +26,13 @@
     :root{ scroll-behavior:smooth; }
 }
 *{ box-sizing:border-box; }
-html, body{ height:100%; }
+html{
+    height: 100%;
+    height: -webkit-fill-available;
+}
 body{
+    height: 100%;
+    min-height: -webkit-fill-available;
     margin:0;
     background: var(--surface-alt);
     color: var(--ink);
@@ -38,6 +43,7 @@ body{
     display:flex;
     flex-direction:column;
     min-height:100vh;
+    min-height:100dvh; /* Add this line to fix mobile Safari/Chrome JN */
 }
 .map-shell{
     position:relative;
@@ -46,7 +52,8 @@ body{
 }
 #map{
     position:absolute;
-    inset:0;
+    top: 0; right: 0; bottom: 0; left: 0; /* replaces inset: 0 */
+
     background: var(--map-bg);
 }
 
@@ -157,11 +164,7 @@ input, select{
 /* Utilities */
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .hide-on-mobile{ display:block; }
-@media (max-width: 720px){
-    .hide-on-mobile{ display:none; }
-    .appbar h1{ font-size: .98rem; }
-    .sidebar{ top:68px; }
-}
+
 
 /* Color accents for map features */
 .poi{ text-shadow: 0 1px 0 rgba(255,255,255,.6); }
@@ -316,13 +319,13 @@ button, .btn{
 .icon-circle svg{ width:18px; height:18px; display:block; }
 .icon-label{ white-space:nowrap; font-size:.95rem; }
 .utility-scrim{
-    position:fixed; inset:0; background: rgba(0,0,0,.25);
+    position:fixed;top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,.25);
     opacity:0; pointer-events:none; transition: var(--default-animation); z-index:1100;
 }
 .utility-scrim.visible{ opacity:1; pointer-events:auto; }
 
 .modal-scrim{
-    position:fixed; inset:0; background: rgba(0,0,0,.45);
+    position:fixed;top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,.45);
     display:flex; align-items:center; justify-content:center;
     opacity:0; pointer-events:none; transition: var(--default-animation); z-index:1300;
 }
@@ -338,19 +341,92 @@ button, .btn{
 .modal-body label{ font-weight:700; color: var(--ink); }
 .fullwidth{ width:100%; text-align:center; }
 
-@media (max-width: 720px){
-    .brand-text h1{ font-size:1rem; }
-    .brand-text .subtitle{ font-size:.85rem; }
-    .appbar input[type="password"]{ width:150px; }
-    .sidebar{ width: calc(100% - 32px); }
-    .helper-banner{
-        position:sticky;
-        top:70px;
-        right:auto;
-        margin:.5rem 1rem 0;
+/* Edited to add responsive adjustments and the floating bottom sheet for mobile JN */
+/* --- MOBILE BOTTOM SHEETS (SIDEBAR & QUICK CONTROLS) --- */
+@media (max-width: 768px) {
+    .hide-on-mobile { display: none !important; }
+    .appbar h1 { font-size: 1rem; }
+    .brand-text .subtitle { font-size: .85rem; }
+
+    /* Map Full Screen */
+    #map { bottom: 0 !important; height: 100% !important; }
+
+    /* Base styles for BOTH Bottom Sheets */
+    .sidebar, .utility-drawer {
+        position: absolute !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        background: #fff !important;
+        border-radius: 16px 16px 0 0 !important;
+        z-index: 1000 !important;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.15) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
-    .utility-drawer{ width: 88vw; }
-    .leaflet-top.leaflet-left .leaflet-control{
-        margin-left: 12px; /* reset so controls are visible on mobile when sidebar covers width */
+
+    /* Add the drag-handle pill to both headers */
+    .sidebar header::before, .utility-drawer header::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 8px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 40px !important;
+        height: 4px !important;
+        background: #ccc !important;
+        border-radius: 4px !important;
     }
+
+    /* --- 1. THE ROUTING SIDEBAR --- */
+    .sidebar {
+        height: 55vh !important;
+        height: 55dvh !important; /* Mobile Fix */
+        transform: translateY(calc(100% - 65px)) !important;
+    }
+    
+    #route-sidebar.expanded {
+        transform: translateY(0) !important;
+    }
+
+    .sidebar header {
+        cursor: pointer !important;
+        padding: 22px 15px 15px 15px !important;
+        position: relative !important;
+        z-index: 10 !important;
+        touch-action: none !important; /* Prevents swipe cancellation */
+    }
+
+    .sidebar main {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* --- 2. THE QUICK CONTROLS (UTILITY DRAWER) --- */
+    .utility-drawer {
+        height: 60vh !important;
+        height: 60dvh !important;
+        /* Hide entirely off the bottom until hamburger is clicked */
+        transform: translateY(100%) !important; 
+    }
+    
+    /* When your existing JS sets aria-hidden="false", slide it up */
+    .utility-drawer[aria-hidden="false"] {
+        transform: translateY(0) !important;
+    }
+
+    .utility-drawer header {
+        cursor: pointer !important;
+        padding-top: 22px !important;
+        position: relative !important;
+        touch-action: none !important; /* Prevents swipe cancellation */
+    }
+
+    /* Keep Leaflet controls above the peeking sidebar */
+    .leaflet-bottom .leaflet-control { margin-bottom: 80px !important; }
 }

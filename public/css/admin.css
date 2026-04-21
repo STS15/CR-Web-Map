@@ -21,7 +21,8 @@ body{
 }
 .admin-shell{ display:flex; flex-direction:column; min-height:100vh; }
 #map{
-    position:absolute; inset:0;
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0; /* replaces inset: 0 */
 }
 main.admin-map-shell{ position:relative; flex:1; min-height:0; }
 header.appbar{
