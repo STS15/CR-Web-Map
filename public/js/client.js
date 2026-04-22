@@ -234,12 +234,27 @@
      * @param {string} query
      * @param {number} limit
      */
+    //simple search function that matches query against name, number, building prefix, and building id; also supports room-style queries like "HU-210" to directly find the parent building JN
     function simpleSearch(items, query, limit) {
         if (!query) return [];
-        const q = query.trim().toLowerCase();
+        const q = query.trim().toUpperCase();
+
+        // 1. Check for Room Format (e.g., "HU-210", "HU 210", or "HU210")
+        const roomMatch = q.match(/^([A-Z]+)[-\s]?(\d+.*)$/);
+        if (roomMatch) {
+            const prefix = roomMatch[1]; // e.g., "HU"
+            const buildingMatch = items.find(item => item.prefix && item.prefix.toUpperCase() === prefix);
+            if (buildingMatch) {
+                return [buildingMatch]; // Instantly return the parent building
+            }
+        }
+
+        // 2. Standard string match fallback
+        const qLower = q.toLowerCase();
         return items.filter(function (item) {
             const hay = (item.searchKey || "").toLowerCase();
-            return hay.includes(q);
+            const itemPrefix = (item.prefix || "").toLowerCase();
+            return hay.includes(qLower) || itemPrefix === qLower;
         }).slice(0, limit || 8);
     }
 
@@ -441,8 +456,12 @@
             }
         });
 
+        // Snap endpoints to segments JN
+        snapEndpointsToSegments(mapInst, walkways, nodes, nodeIndex, adjacency, segments, 3);
         // Soft-connect nearby nodes that are within a small tolerance (helps when lines barely miss)
-        connectNearbyNodes(mapInst, nodes, adjacency, 2); // meters
+        connectNearbyNodes(mapInst, nodes, adjacency, 3); // meters
+
+
 
         return { nodes: nodes, adjacency: adjacency, segments: segments };
     }
@@ -463,6 +482,101 @@
                 }
             }
         }
+    }
+    /**
+     * Snaps walkway endpoints that nearly touch a segment (but miss it) into the graph.
+     * Handles T-junction near-misses that connectNearbyNodes can't catch (node-to-segment, not node-to-node).
+     * @param {L.Map} mapInst
+     * @param {Array} walkways
+     * @param {Array} nodes
+     * @param {Map} nodeIndex
+     * @param {Map} adjacency
+     * @param {Array} segments
+     * @param {number} toleranceMeters
+     */
+    function snapEndpointsToSegments(mapInst, walkways, nodes, nodeIndex, adjacency, segments, toleranceMeters) {
+        const segsToCheck = segments.slice();
+
+        walkways.forEach(function (w) {
+            const endpointCoords = [w.coords[0], w.coords[w.coords.length - 1]];
+
+            endpointCoords.forEach(function (epCoord) {
+                const epKey = epCoord[0] + "," + epCoord[1];
+                const epNodeIdx = nodeIndex.get(epKey);
+                if (epNodeIdx === undefined) return;
+
+                const epLL = L.latLng(epCoord[1], epCoord[0]);
+
+                let best = null;
+                for (let si = 0; si < segsToCheck.length; si++) {
+                    const seg = segsToCheck[si];
+                    if (seg.a === epNodeIdx || seg.b === epNodeIdx) continue;
+
+                    const A = seg.coordA;
+                    const B = seg.coordB;
+                    const aPt = mapInst.project(L.latLng(A[1], A[0]));
+                    const bPt = mapInst.project(L.latLng(B[1], B[0]));
+                    const ePt = mapInst.project(epLL);
+
+                    const vx = bPt.x - aPt.x, vy = bPt.y - aPt.y;
+                    const wx = ePt.x - aPt.x, wy = ePt.y - aPt.y;
+                    const vv = vx * vx + vy * vy || 1e-12;
+                    let t = (vx * wx + vy * wy) / vv;
+                    if (t < 0) t = 0;
+                    if (t > 1) t = 1;
+
+                    const projLL = mapInst.unproject(L.point(aPt.x + t * vx, aPt.y + t * vy));
+                    const dist = mapInst.distance(epLL, projLL);
+
+                    if (dist <= toleranceMeters && (!best || dist < best.dist)) {
+                        best = { seg: seg, si: si, proj: [projLL.lng, projLL.lat], dist: dist };
+                    }
+                }
+
+                if (!best) return;
+
+                const seg = best.seg;
+                const ia = seg.a, ib = seg.b;
+                const A = seg.coordA, B = seg.coordB;
+                const proj = best.proj;
+
+                // Remove old ia <-> ib edges
+                adjacency.set(ia, adjacency.get(ia).filter(function (e) { return e.to !== ib; }));
+                adjacency.set(ib, adjacency.get(ib).filter(function (e) { return e.to !== ia; }));
+
+                // Reuse or create a node at the projected point
+                const projKey = proj[0] + "," + proj[1];
+                let projIdx;
+                if (nodeIndex.has(projKey)) {
+                    projIdx = nodeIndex.get(projKey);
+                } else {
+                    projIdx = nodes.length;
+                    nodes.push(proj);
+                    nodeIndex.set(projKey, projIdx);
+                    adjacency.set(projIdx, []);
+                }
+
+                // ia -> projIdx -> ib
+                const dA = turf.distance(A, proj, { units: "kilometers" });
+                const dB = turf.distance(proj, B, { units: "kilometers" });
+                adjacency.get(ia).push({ to: projIdx, weight: dA });
+                adjacency.get(projIdx).push({ to: ia, weight: dA });
+                adjacency.get(ib).push({ to: projIdx, weight: dB });
+                adjacency.get(projIdx).push({ to: ib, weight: dB });
+
+                // Connect the endpoint node to the split point
+                const dEp = turf.distance(epCoord, proj, { units: "kilometers" });
+                adjacency.get(epNodeIdx).push({ to: projIdx, weight: dEp });
+                adjacency.get(projIdx).push({ to: epNodeIdx, weight: dEp });
+
+                // Replace the old segment with the two new halves
+                const actualIdx = segments.indexOf(best.seg);
+                if (actualIdx === -1) return; // already split by an earlier endpoint, skip
+                segments.splice(actualIdx, 1);
+                segments.push({ a: ia, b: projIdx, coordA: A, coordB: proj });
+                segments.push({ a: projIdx, b: ib, coordA: proj, coordB: B });
+            });
+        });
     }
 
     /**
@@ -634,6 +748,10 @@
         const startLabel = document.getElementById("route-start-label");
         const endLabel = document.getElementById("route-end-label");
         const distanceLabel = document.getElementById("route-distance-label");
+        const endSearchBtn = document.getElementById("route-end-btn");
+
+        if (startSearchInput) startSearchInput.value = "";
+        if (endSearchInput) endSearchInput.value = "";
 
         let mode = null; // "start"|"end"|null
         let startCoord = null;
@@ -850,87 +968,172 @@
             const items = [];
             const addItem = function (f) {
                 const p = f.properties || {};
-                const id = p._id;
+                const id = p._id || f.id; // Support both ID formats
                 const type = p.type;
                 const name = p.name || "";
                 const number = p.number || "";
                 const buildingId = p.buildingId || "";
-                const searchKey = [name, number, buildingId, type].filter(Boolean).join(" ");
-                items.push({ id: id, type: type, name: name, number: number, buildingId: buildingId, geom: f.geometry, searchKey: searchKey, raw: f });
+                const prefix = p.prefix || "";
+                
+                const searchKey = [name, number, prefix, buildingId, type].filter(Boolean).join(" ");
+                items.push({ id: id, type: type, name: name, number: number, prefix: prefix, buildingId: buildingId, geom: f.geometry, searchKey: searchKey, raw: f });
             };
-            (walkwaysFc.features || []).forEach(addItem); // entrances may be part of features
+
+            // Index BOTH collections so buildings are searchable
+            (walkwaysFc.features || []).forEach(addItem);
+            if (window.featuresFc && window.featuresFc.features) {
+                window.featuresFc.features.forEach(addItem);
+            }
             return items;
         }
 
         function resolveFeatureToCoord(item, role) {
             if (!item || !item.raw || !item.raw.geometry) return null;
             const p = item.raw.properties || {};
+            const geom = item.raw.geometry;
 
             if (p.type === "entrance") {
-                const c = item.raw.geometry.coordinates;
-                return { coord: c, label: p.name || "Entrance" };
+                return { coord: geom.coordinates, label: p.name || "Entrance" };
             }
 
-            if (p.type === "room" && p.buildingId) {
-                // look up building entrances
-                const entrances = featureIndex.filter(function (x) { return x.type === "entrance" && x.buildingId === p.buildingId; });
-                if (entrances.length) {
-                    const nearest = entrances[0];
-                    return { coord: nearest.raw.geometry.coordinates, label: nearest.name || "Entrance" };
-                }
+            // If it's a room or building, try to find an entrance first
+            const targetId = p.buildingId || p._id || item.id;
+            const entrances = featureIndex.filter(x => x.type === "entrance" && x.buildingId === targetId);
+            
+            if (entrances.length) {
+                const nearest = entrances[0];
+                return { coord: nearest.raw.geometry.coordinates, label: nearest.name || "Entrance" };
             }
 
-            if (p.type === "building") {
-                // pick nearest entrance if available
-                const entrances = featureIndex.filter(function (x) { return x.type === "entrance" && x.buildingId === p._id; });
-                if (entrances.length) {
-                    const nearest = entrances[0];
-                    return { coord: nearest.raw.geometry.coordinates, label: nearest.name || "Entrance" };
-                }
-                // fallback centroid
-                if (item.raw.geometry.type === "Polygon") {
-                    const c = turf.centerOfMass(item.raw);
-                    return { coord: c.geometry.coordinates, label: p.name || "Building centroid" };
-                }
+            // Reliable fallback for Polygons and MultiPolygons
+            if (geom.type === "Polygon" || geom.type === "MultiPolygon") {
+                const center = turf.centerOfMass(item.raw);
+                return { coord: center.geometry.coordinates, label: p.name || "Building" };
             }
 
-            // fallback to point geom
-            return item.raw.geometry.coordinates ? { coord: item.raw.geometry.coordinates, label: p.name || role } : null;
+            // Fallback for Points
+            if (geom.type === "Point") {
+                return { coord: geom.coordinates, label: p.name || role };
+            }
+
+            return null;
         }
 
-        function handleSearch(inputEl, role) {
-            if (!inputEl) return;
-            inputEl.addEventListener("change", function () {
-                const q = inputEl.value;
-                if (!q || !featureIndex) return;
-                const matches = simpleSearch(featureIndex, q, 1);
-                if (!matches.length) return;
-                const resolved = resolveFeatureToCoord(matches[0], role);
-                if (!resolved) return;
-                const snapped = snapToWalkways(mapInst, walkwaysFc, resolved.coord, MAX_SNAP_METERS);
-                if (!snapped) return;
-                const latlng = L.latLng(snapped.coord[1], snapped.coord[0]);
+function notifyUser(message) {
+            const toastContainer = document.getElementById("toasts");
+            if (toastContainer) {
+                const toast = document.createElement("div");
+                toast.className = "toast";
+                toast.style.backgroundColor = "#d32f2f"; // Red error color
+                toast.style.color = "white";
+                toast.innerText = message;
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            } else {
+                alert(message);
+            }
+        }
 
-                if (role === "start") {
-                    startCoord = snapped.coord;
-                    startSnapDist = snapped.distMeters;
-                    if (!startMarker) startMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
-                    else startMarker.setLatLng(latlng);
-                } else {
-                    endCoord = snapped.coord;
-                    endSnapDist = snapped.distMeters;
-                    if (!endMarker) endMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
-                    else endMarker.setLatLng(latlng);
-                }
-                updateLabels();
-                recomputeRoute();
+        // Replaces handleSearch. Returns the coordinate if successful, or null if it fails.
+        async function executeSearch(inputEl, role) {
+            const q = inputEl.value;
+            if (!q) return null;
+
+            if (!featureIndex) {
+                notifyUser("Campus data is still loading. Please wait.");
+                return null;
+            }
+            
+            const matches = simpleSearch(featureIndex, q, 1);
+            if (!matches.length) {
+                notifyUser(`Could not find a location matching "${q}"`);
+                return null; 
+            }
+            
+            const resolved = resolveFeatureToCoord(matches[0], role);
+            if (!resolved) {
+                notifyUser(`Unable to find map coordinates for "${q}"`);
+                return null;
+            }
+            
+            const snapped = snapToWalkways(mapInst, walkwaysFc, resolved.coord, MAX_SNAP_METERS);
+            if (!snapped) {
+                notifyUser(`"${q}" is too far from a known path.`);
+                return null;
+            }
+            
+            const latlng = L.latLng(snapped.coord[1], snapped.coord[0]);
+
+            if (role === "start") {
+                startCoord = snapped.coord;
+                startSnapDist = snapped.distMeters;
+                if (!startMarker) startMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
+                else startMarker.setLatLng(latlng);
+            } else {
+                endCoord = snapped.coord;
+                endSnapDist = snapped.distMeters;
+                if (!endMarker) endMarker = L.marker(latlng, { draggable: false }).addTo(mapInst);
+                else endMarker.setLatLng(latlng);
+            }
+
+            return snapped.coord;
+        }
+
+        // Solves Problem 1: Ties the workflow together
+        function setupSearchHandlers() {
+            // The single Search button acts as a Master Submit
+            if (endSearchBtn) {
+                endSearchBtn.addEventListener("click", async (e) => {
+                    e.preventDefault();
+                    
+                    // If start field has text but no coordinate, process it first
+                    if (startSearchInput && startSearchInput.value && !startCoord) {
+                        await executeSearch(startSearchInput, "start");
+                    }
+                    
+                    // Process destination
+                    if (endSearchInput && endSearchInput.value) {
+                        await executeSearch(endSearchInput, "end");
+                    }
+
+                    // Safe recalculation
+                    safeRecompute();
+                });
+            }
+
+            // Allow Enter key to trigger searches individually
+            [startSearchInput, endSearchInput].forEach(input => {
+                if (!input) return;
+                input.addEventListener("keyup", async (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        const role = input === startSearchInput ? "start" : "end";
+                        await executeSearch(input, role);
+                        safeRecompute();
+                    }
+                });
             });
         }
 
-        handleSearch(startSearchInput, "start");
-        handleSearch(endSearchInput, "end");
+        // Solves Problem 3: Catches Turf.js errors so the UI doesn't freeze
+        async function safeRecompute() {
+            try {
+                if (!startCoord || !endCoord) return;
+                
+                const distLabel = document.getElementById("route-distance");
+                if (distLabel) distLabel.innerText = "Calculating...";
 
-        clearRoute();
+                await recomputeRoute();
+                updateLabels();
+            } catch (err) {
+                console.error("Routing Error:", err);
+                notifyUser("Unable to calculate a path between these points.");
+                const distLabel = document.getElementById("route-distance");
+                if (distLabel) distLabel.innerText = "--";
+            }
+        }
+        // Initialize the new unified listeners
+        setupSearchHandlers();
     }
 
     /**
@@ -942,6 +1145,8 @@
         const closeBtn = document.getElementById("utility-close");
         const scrim = document.getElementById("utility-scrim");
         if (!toggle || !drawer) return;
+
+        L.DomEvent.disableClickPropagation(drawer);
 
         const open = () => {
             drawer.classList.add("open");
@@ -982,20 +1187,32 @@
             }
         });
 
-        // Base map buttons
-        const baseToggle = document.getElementById("basemap-toggle");
-        if (baseToggle && mapInst && mapInst._crBase) {
-            baseToggle.addEventListener("click", function (e) {
-                const btn = e.target && e.target.closest && e.target.closest("[data-base-layer]");
-                if (!btn) return;
-                const layerName = btn.getAttribute("data-base-layer");
-                if (!layerName) return;
-                setBaseLayer(mapInst, layerName);
-                baseToggle.querySelectorAll(".basemap-btn").forEach(function (el) {
-                    el.classList.toggle("active", el === btn);
-                });
-            });
-        }
+        
+        // Base map buttons JN
+            const baseToggle = document.getElementById("basemap-toggle");
+            if (baseToggle && mapInst && mapInst._crBase) {
+                
+                // THE FIX: Stop Leaflet from stealing the touch to pan the map
+                L.DomEvent.disableClickPropagation(baseToggle);
+
+                function applyBaseLayer(e) {
+                    const btn = e.target && e.target.closest && e.target.closest("[data-base-layer]");
+                    if (!btn) return;
+                    
+                    const layerName = btn.getAttribute("data-base-layer");
+                    if (!layerName) return;
+                    
+                    setBaseLayer(mapInst, layerName);
+                    
+                    baseToggle.querySelectorAll(".basemap-btn").forEach(function (el) {
+                        el.classList.toggle("active", el === btn);
+                    });
+                }
+                
+                // Because we disabled Leaflet's interference above, 
+                // a standard click listener is all you need for both Desktop and Mobile
+                baseToggle.addEventListener("click", applyBaseLayer);
+            }
 
         // Admin modal hook
         const adminBtn = document.getElementById("drawer-admin-fab");

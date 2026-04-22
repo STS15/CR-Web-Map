@@ -33,6 +33,68 @@
         walkwayLayer.eachLayer(l => editableLayers.addLayer(l));
 
 
+        //Building inspection logic JN
+        const inspector = document.getElementById("feature-inspector");
+        const inspectId = document.getElementById("inspect-id");
+        const inspectName = document.getElementById("inspect-name");
+        const inspectPrefix = document.getElementById("inspect-prefix");
+        const inspectNumber = document.getElementById("inspect-number");
+        
+        let currentEditLayer = null;
+
+        // Open Inspector on Click
+        editableLayers.on("click", function (e) {
+            // Ignore if we are doing route snapping
+            if (window.CR_routingMode) return;
+
+            const layer = e.layer;
+            const feature = layer.feature;
+            if (!feature || !feature.properties) return;
+
+            // Only open for Buildings/Rooms
+            if (feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon") {
+                currentEditLayer = layer;
+                const p = feature.properties;
+                
+                inspectId.value = p._id || "";
+                inspectName.value = p.name || "";
+                inspectPrefix.value = p.prefix || "";
+                inspectNumber.value = p.number || "";
+                
+                inspector.style.display = "block";
+            }
+        });
+
+        // Save Changes
+        document.getElementById("inspect-save")?.addEventListener("click", async () => {
+            if (!currentEditLayer) return;
+
+            const feature = currentEditLayer.feature;
+            feature.properties.name = inspectName.value.trim();
+            feature.properties.prefix = inspectPrefix.value.trim().toUpperCase();
+            feature.properties.number = inspectNumber.value.trim();
+
+            const saved = await CR.saveFeature(feature);
+            currentEditLayer.feature = saved;
+            
+            // Keep master array in sync
+            const idx = allFeatures.findIndex(f => f.properties._id === saved.properties._id);
+            if (idx >= 0) allFeatures[idx] = saved;
+
+            inspector.style.display = "none";
+            currentEditLayer = null;
+            
+            // Optional: Show a toast or console log to confirm
+            console.log("Saved Building:", saved.properties.name);
+        });
+
+        // Cancel
+        document.getElementById("inspect-cancel")?.addEventListener("click", () => {
+            inspector.style.display = "none";
+            currentEditLayer = null;
+        });
+
+
         //Joe edited code
         // Persist edits made via Leaflet draw editor
         map.on(L.Draw.Event.EDITED, function (e) {
@@ -64,6 +126,36 @@
                     console.log("Polygon updated and saved to DB:", saved.properties.name);
                     // END FIX
                 }
+            });
+        });
+        // Handle the Leaflet Draw DELETED event to persist deletions
+        map.on(L.Draw.Event.DELETED, function (e) {
+            e.layers.eachLayer(async function (layer) {
+                if (!layer.feature || !layer.feature.properties) return;
+                const id = layer.feature.properties._id;
+                if (!id) return;
+
+                const geomType = layer.feature.geometry && layer.feature.geometry.type;
+
+                if (geomType === "LineString") {
+                    // Walkway deletion
+                    await CR.deleteWalkway(id);
+                    const idx = walkwayFeatures.findIndex(f => f.properties && f.properties._id === id);
+                    if (idx >= 0) walkwayFeatures.splice(idx, 1);
+                } else {
+                    // Building / room / entrance / parking deletion
+                    await CR.deleteFeature(id);
+                    const idx = allFeatures.findIndex(f => f.properties && f.properties._id === id);
+                    if (idx >= 0) allFeatures.splice(idx, 1);
+                }
+
+                // Also remove from featureLayer so the polygon actually disappears
+                // (layers are shared between featureLayer and editableLayers)
+                featureLayer.eachLayer(function (fl) {
+                    if (fl.feature && fl.feature.properties && fl.feature.properties._id === id) {
+                        featureLayer.removeLayer(fl);
+                    }
+                });
             });
         });
         window.CR.onMenuAction = function (action) {

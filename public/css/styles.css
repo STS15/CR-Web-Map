@@ -362,7 +362,7 @@ button, .btn{
         margin: 0 !important;
         background: #fff !important;
         border-radius: 16px 16px 0 0 !important;
-        z-index: 1000 !important;
+        z-index: 1200 !important; /*changed from 1000 to 1200 to be above the helper banner JN*/
         box-shadow: 0 -8px 24px rgba(0,0,0,0.15) !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         display: flex !important;

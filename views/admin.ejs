@@ -74,10 +74,10 @@
 
         <ul class="drawer-list">
             <li><button type="button" class="drawer-link" data-action="fit-to-campus">Fit to campus</button></li>
-            //added the following two lines for testing start and end point nav JN
+            <!--added the following two lines for testing start and end point nav JN-->
             <li><button type="button" class="drawer-link" data-action="set-start-nav">Test: Set Start Point</button></li>
             <li><button type="button" class="drawer-link" data-action="set-end-nav">Test: Set End Point</button></li>
-            //added for network audit feature JN
+            <!--added for network audit feature JN-->
             <li><button type="button" class="drawer-link" data-action="audit-network">Audit Connectivity</button></li>
             <li><button type="button" class="drawer-link" data-action="download-data">Download GeoJSON</button></li>
             <li><button type="button" class="drawer-link" data-action="polygon-delete">Erase walkways (polygon)</button></li>
@@ -144,8 +144,34 @@
 
 <footer class="toasts" id="toasts"></footer>
 
+<aside id="feature-inspector" class="sidebar" style="display: none; right: 16px; left: auto; top: 86px;">
+        <header>
+            <h3 style="margin: 0; font-family: var(--heading-font-family);">Edit Building</h3>
+        </header>
+        <main>
+            <fieldset>
+                <legend>Building Details</legend>
+                <input type="hidden" id="inspect-id" />
+                
+                <label for="inspect-name">Display Name</label>
+                <input type="text" id="inspect-name" placeholder="e.g. Humanities" />
+                
+                <label for="inspect-prefix">Building Prefix (Code)</label>
+                <input type="text" id="inspect-prefix" placeholder="e.g. HU" style="text-transform: uppercase;" />
+                
+                <label for="inspect-number">Building Number</label>
+                <input type="text" id="inspect-number" placeholder="e.g. 28" />
+            </fieldset>
+            <div class="button-row" style="margin-top: 1rem; justify-content: flex-end;">
+                <button id="inspect-cancel" class="ghost" style="color: var(--ink); border-color: #d7c9c4;">Cancel</button>
+                <button id="inspect-save">Save Changes</button>
+            </div>
+        </main>
+    </aside>
+
 <script>
     CR.bootAdmin();
 </script>
+
 </body>
 </html>

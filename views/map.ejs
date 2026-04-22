@@ -56,14 +56,20 @@
                 Drop a start and destination anywhere on the map. We snap to the closest walkway (within 150m) for a clean route.
             </p>
 
+        <!--update the search bar JN -->
+        <main>
             <fieldset>
                 <legend>Search</legend>
                 <label for="route-start-search">Start (building, room, entrance)</label>
-                <input id="route-start-search" type="search" placeholder="e.g., Humanities, HU-101" autocomplete="off" />
+                <input id="route-start-search" type="search" placeholder="e.g., Humanities, HU-101" autocomplete="off" style="margin-bottom: 0.6rem; width: 100%;" />
+                
                 <label for="route-end-search">Destination (building, room)</label>
-                <input id="route-end-search" type="search" placeholder="e.g., Science, SC-210" autocomplete="off" />
-                <small class="muted">We route to the nearest entrance of your destination.</small>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.6rem;">
+                    <input id="route-end-search" type="search" placeholder="e.g., Science, SC-210" autocomplete="off" style="margin: 0; flex: 1;" />
+                    <button type="button" id="route-end-btn" class="btn" style="margin: 0;">Search</button>
+                </div>
             </fieldset>
+            <div class="button-row">
 
             <fieldset>
                 <legend>Pick points</legend>
@@ -177,7 +183,8 @@
 
         //updated to ignore pop ups so buildings could be clicked on for navigation JN
         const featuresLayer = CR.createFeaturesLayer(features).addTo(map);
-        CR.createWalkwaysLayer(walkways).addTo(map);
+        window.featuresFc = features;
+        // CR.createWalkwaysLayer(walkways).addTo(map); uncommit to add green walkways back to client side JN
 
         if (CR.initRouting) {
             CR.initRouting(map, walkways, featuresLayer); // Added featuresLayer here
