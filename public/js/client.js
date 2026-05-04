@@ -38,7 +38,8 @@
             updateWhenIdle: false,
             errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACw="
         });
-        CR.enableTilePrefetch(map, osm);
+
+
         const esriSat = L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
@@ -49,7 +50,8 @@
                 updateWhenIdle: true
             }
         );
-        CR.enableTilePrefetch(map, esriSat);
+
+
 
         map._crBase = {
             current: "paper",
@@ -58,8 +60,11 @@
                 satellite: esriSat
             }
         };
+
         // start with paper layer
-        map.addLayer(osm);
+        map.addLayer(map._crBase.layers[map._crBase.current]);
+        CR.enableTilePrefetch(map, osm);
+        CR.enableTilePrefetch(map, esriSat);
 
         return map;
     }
@@ -200,7 +205,12 @@
     function enableTilePrefetch(map, tileLayer) {
         let t;
         const currentZ = () => Math.round(map.getZoom());
-        const doPrefetch = () => prefetchTiles(map, tileLayer, [currentZ(), currentZ() + 1]);
+        const doPrefetch = () => {
+            const z = currentZ();
+            if (!Number.isFinite(z)) return;                        
+            if (!Number.isFinite(tileLayer._tileZoom)) return;     
+            prefetchTiles(map, tileLayer, [z, z + 1]);
+        };
         map.on("moveend zoomend", () => {
             clearTimeout(t);
             t = setTimeout(doPrefetch, 150);
@@ -242,14 +252,22 @@
         // 1. Check for Room Format (e.g., "HU-210", "HU 210", or "HU210")
         const roomMatch = q.match(/^([A-Z]+)[-\s]?(\d+.*)$/);
         if (roomMatch) {
-            const prefix = roomMatch[1]; // e.g., "HU"
+            const prefix = roomMatch[1];
             const buildingMatch = items.find(item => item.prefix && item.prefix.toUpperCase() === prefix);
             if (buildingMatch) {
-                return [buildingMatch]; // Instantly return the parent building
+                return [buildingMatch];
             }
         }
 
-        // 2. Standard string match fallback
+        // 2. Exact prefix match — handles standalone prefix queries like "HU" or "LRC"
+        // This must come before the general includes() fallback so that "HU" doesn't
+        // accidentally match on "Humanities" containing the substring "hu"
+        const exactPrefixMatch = items.find(item => item.prefix && item.prefix.toUpperCase() === q);
+        if (exactPrefixMatch) {
+            return [exactPrefixMatch];
+        }
+
+        // 3. Standard string match fallback
         const qLower = q.toLowerCase();
         return items.filter(function (item) {
             const hay = (item.searchKey || "").toLowerCase();

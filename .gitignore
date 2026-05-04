@@ -22,3 +22,6 @@ out/
 # System files
 .DS_Store
 Th
+
+static/
+GIS-MAPS/

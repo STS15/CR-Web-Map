@@ -141,11 +141,30 @@ async function maybeImportFromJson() {
     }
 }
 
+//joe edited, now the main source of truth is the data column, but we still maintain separate columns for important searchable metadata like name or prefix. This way if the data blob is missing/corrupted, we can still show something and allow searching by name or prefix.
 async function readAllFeatures() {
     await ensureTables();
     const res = await query("SELECT id, type, name, number, building_id, prefix, direction, data, geom FROM features");
     return res.rows.map(r => {
-        if (r.data) return r.data;
+        if (r.data) {
+            // Use data blob as the primary source, but fall back to dedicated
+            // columns for any fields that are missing or null in the blob.
+            // This means a corrupt/incomplete data blob can't silently wipe
+            // searchable metadata like prefix or name.
+            const feature = r.data;
+            const p = feature.properties || {};
+            feature.properties = {
+                ...p,
+                _id:        p._id        || r.id,
+                type:       p.type       || r.type       || null,
+                name:       p.name       || r.name       || null,
+                number:     p.number     || r.number     || null,
+                buildingId: p.buildingId || r.building_id || null,
+                prefix:     p.prefix     || r.prefix     || null,
+                direction:  p.direction  || r.direction  || null,
+            };
+            return feature;
+        }
         return {
             type: "Feature",
             geometry: r.geom || null,

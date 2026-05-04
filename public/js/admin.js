@@ -108,23 +108,20 @@
                     // Logic for walkways
                     await persistEditedWalkway(map, layer, walkwayFeatures);
                 } else if (geomType === "Polygon" || geomType === "MultiPolygon") {
-                    // START FIX: Ensure Polygons actually save to the database
                     const updatedFeature = layer.toGeoJSON();
-                    
-                    // Retain the original ID so it updates instead of duplicates
-                    if (layer.feature.properties._id) {
-                        updatedFeature.properties._id = layer.feature.properties._id;
-                    }
+
+                    // Preserve ALL original properties (prefix, name, type, etc.)
+                    // Only the geometry has changed — the draw tool shouldn't touch metadata
+                    updatedFeature.properties = { ...layer.feature.properties };
 
                     const saved = await CR.saveFeature(updatedFeature);
                     layer.feature = saved;
-                    
-                    // Keep the local array in sync
+
                     const idx = allFeatures.findIndex(f => f.properties._id === saved.properties._id);
                     if (idx >= 0) allFeatures[idx] = saved;
-                    
+
                     console.log("Polygon updated and saved to DB:", saved.properties.name);
-                    // END FIX
+
                 }
             });
         });
