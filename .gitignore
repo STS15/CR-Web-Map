@@ -22,5 +22,7 @@ out/
 # System files
 .DS_Store
 Th
+.vs/
+.vscode/
 
 
