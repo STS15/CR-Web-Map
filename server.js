@@ -10,6 +10,7 @@ const morgan = require("morgan");
 const dotenv = require("dotenv");
 const { readAllFeatures, upsertFeature, deleteFeatureById } = require("./store");
 const { readAllWalkways, upsertWalkway, deleteWalkwayById } = require("./walkwayStore");
+const { createBugReportsTable, insertBugReport, getAllBugReports, deleteBugReport } = require("./bugStore");
 
 
 dotenv.config();
@@ -120,6 +121,28 @@ function createApp() {
     });
     app.delete("/api/walkways/:id", requireAuth, async (req, res) => {
         await deleteWalkwayById(req.params.id);
+        res.json({ ok: true });
+    });
+
+    app.post("/api/bugs", async (req, res) => {
+        try {
+            const { description, zoom, lat, lng } = req.body;
+            const report = await insertBugReport({ description, zoom, lat, lng });
+            await notifyDiscord(report);
+            res.json({ ok: true });
+        } catch (err) {
+            console.error("Bug report error:", err);
+            res.status(500).json({ error: "Failed to save bug report" });
+        }
+    });
+
+    app.get("/api/bugs", requireAuth, async (_req, res) => {
+        const reports = await getAllBugReports();
+        res.json(reports);
+    });
+
+    app.delete("/api/bugs/:id", requireAuth, async (req, res) => {
+        await deleteBugReport(req.params.id);
         res.json({ ok: true });
     });
 
@@ -238,6 +261,32 @@ async function apiDeleteFeature(req, res) {
  * @param {import('express').Request} _req
  * @param {import('express').Response} res
  */
+
+async function notifyDiscord(report) {
+    const url = process.env.DISCORD_WEBHOOK_URL;
+    if (!url) return;
+    const body = {
+        embeds: [{
+            title: "🐛 New Bug Report",
+            color: 0x8e001c,
+            fields: [
+                { name: "Description", value: report.description || "No description" },
+                { name: "Location", value: `Lat: ${report.lat}, Lng: ${report.lng}`, inline: true },
+                { name: "Zoom", value: String(report.zoom), inline: true },
+                { name: "Time", value: new Date(report.reported_at).toLocaleString() }
+            ]
+        }]
+    };
+    try {
+        await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body)
+        });
+    } catch (err) {
+        console.error("Discord webhook error:", err);
+    }
+}
 function handleNotFound(_req, res) {
     res.status(404).render("404", { isAdmin: false, messages: {} });
 }
@@ -255,6 +304,11 @@ function handleError(err, _req, res, _next) {
 }
 
 const port = process.env.PORT || 5000;
-createApp().listen(port, () => {
-    console.log(`CR WebApp listening on http://localhost:${port}`);
-});
+createBugReportsTable()
+    .then(() => createApp().listen(port, () => {
+        console.log(`CR WebApp listening on http://localhost:${port}`);
+    }))
+    .catch(err => {
+        console.error("Failed to initialize database:", err);
+        process.exit(1);
+    });

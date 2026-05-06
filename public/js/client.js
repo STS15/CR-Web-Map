@@ -1215,6 +1215,11 @@ function notifyUser(message) {
                 // eslint-disable-next-line no-console
                 console.info("Menu action selected:", action);
             }
+            if (action === "report-bug") {
+                if (window.CR && typeof window.CR.openBugReport === "function") {
+                    window.CR.openBugReport();
+                }
+            }
         });
 
         
@@ -1305,7 +1310,133 @@ function notifyUser(message) {
         store.current = name;
     }
 
+    function initBugReport(mapInst) {
+        const scrim = document.getElementById("bug-modal-scrim");
+        const closeBtn = document.getElementById("bug-modal-close");
+        const submitBtn = document.getElementById("bug-submit");
+        const textarea = document.getElementById("bug-description");
+        const preview = document.getElementById("bug-location-preview");
+        if (!scrim) return;
+
+        const openModal = () => {
+            const center = mapInst.getCenter();
+            const zoom = mapInst.getZoom();
+            if (preview) {
+                preview.textContent = `Current location: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} — Zoom ${zoom.toFixed(1)}`;
+            }
+            scrim.classList.add("open");
+            scrim.setAttribute("aria-hidden", "false");
+            if (textarea) textarea.value = "";
+            setTimeout(() => { if (textarea) textarea.focus(); }, 50);
+        };
+
+        const closeModal = () => {
+            scrim.classList.remove("open");
+            scrim.setAttribute("aria-hidden", "true");
+        };
+
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        scrim.addEventListener("click", (e) => { if (e.target === scrim) closeModal(); });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+        if (submitBtn) {
+            submitBtn.addEventListener("click", async () => {
+                const description = textarea ? textarea.value.trim() : "";
+                if (!description) {
+                    alert("Please describe the issue before submitting.");
+                    return;
+                }
+                const center = mapInst.getCenter();
+                const zoom = mapInst.getZoom();
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Submitting...";
+                try {
+                    const res = await fetch("/api/bugs", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({
+                            description,
+                            zoom: parseFloat(zoom.toFixed(2)),
+                            lat: parseFloat(center.lat.toFixed(6)),
+                            lng: parseFloat(center.lng.toFixed(6))
+                        })
+                    });
+                    if (res.ok) {
+                        alert("Bug report submitted. Thank you!");
+                        closeModal();
+                    } else {
+                        alert("Failed to submit report. Please try again.");
+                    }
+                } catch {
+                    alert("Network error. Please try again.");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Submit Report";
+                }
+            });
+        }
+
+        window.CR.openBugReport = openModal;
+    }
+
+    function initBugLog() {
+        const btn = document.getElementById("view-bug-reports");
+        const scrim = document.getElementById("bug-log-scrim");
+        const closeBtn = document.getElementById("bug-log-close");
+        const body = document.getElementById("bug-log-body");
+        if (!btn || !scrim) return;
+
+        const closeModal = () => {
+            scrim.classList.remove("open");
+            scrim.setAttribute("aria-hidden", "true");
+        };
+
+        btn.addEventListener("click", async () => {
+            scrim.classList.add("open");
+            scrim.setAttribute("aria-hidden", "false");
+            if (body) body.innerHTML = "<p class='muted'>Loading...</p>";
+            try {
+                const res = await fetch("/api/bugs");
+                const reports = await res.json();
+                if (!reports.length) {
+                    body.innerHTML = "<p class='muted'>No bug reports yet.</p>";
+                    return;
+                }
+                body.innerHTML = reports.map(r => `
+                    <div style="border:1px solid #2f3238; border-radius:6px; padding:0.75rem; margin-bottom:0.6rem; background:#22242a;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+                            <p style="margin:0; color:#f5f5f8;">${r.description}</p>
+                            <button onclick="CR.resolveBug(${r.id}, this)" style="background:#8e001c; border:none; color:#fff; border-radius:4px; padding:0.3rem 0.6rem; cursor:pointer; white-space:nowrap; font-size:0.8rem;">Resolve</button>
+                        </div>
+                        <p style="margin:0.4rem 0 0; font-size:0.8rem; color:#9fa1a8;">
+                            📍 ${r.lat}, ${r.lng} &nbsp;|&nbsp; Zoom ${r.zoom} &nbsp;|&nbsp; ${new Date(r.reported_at).toLocaleString()}
+                        </p>
+                    </div>
+                `).join("");
+            } catch {
+                body.innerHTML = "<p class='muted'>Failed to load reports.</p>";
+            }
+        });
+
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        scrim.addEventListener("click", (e) => { if (e.target === scrim) closeModal(); });
+    }
+
     window.CR = window.CR || {};
+
+    window.CR.resolveBug = async function(id, btn) {
+        btn.disabled = true;
+        btn.textContent = "Resolving...";
+        try {
+            await fetch(`/api/bugs/${id}`, { method: "DELETE" });
+            btn.closest("div[style]").remove();
+        } catch {
+            btn.disabled = false;
+            btn.textContent = "Resolve";
+        }
+    };
+
+    
     window.CR.initMap = initMap;
     window.CR.fetchFeatures = fetchFeatures;
     window.CR.createFeaturesLayer = createFeaturesLayer;
@@ -1321,5 +1452,7 @@ function notifyUser(message) {
     window.CR.initRouting = initRouting;
     window.CR.initUtilityDrawer = initUtilityDrawer;
     window.CR.setBaseLayer = setBaseLayer;
+    window.CR.initBugReport = initBugReport;
+    window.CR.initBugLog = initBugLog;
 
 })();

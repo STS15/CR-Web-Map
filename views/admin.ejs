@@ -84,6 +84,7 @@
             <li><button type="button" class="drawer-link" data-action="bulk-select">Bulk select walkways</button></li>
             <li><button type="button" class="drawer-link" data-action="delete-selected">Delete selected</button></li>
             <li><button type="button" class="drawer-link" data-action="help">Tips & shortcuts</button></li>
+            <li><button type="button" class="drawer-link" id="view-bug-reports">View Bug Reports</button></li>
         </ul>
 
         <div class="drawer-floating-actions">
@@ -107,6 +108,17 @@
     </nav>
     <div class="utility-scrim" id="utility-scrim" aria-hidden="true"></div>
 </main>
+<div class="modal-scrim" id="bug-log-scrim" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-log-title" style="width: min(680px, 95vw); max-height: 80vh; display: flex; flex-direction: column;">
+        <header class="modal-header">
+            <h3 id="bug-log-title">Bug Reports</h3>
+            <button type="button" class="ghost" id="bug-log-close">Close</button>
+        </header>
+        <div class="modal-body" id="bug-log-body" style="overflow-y: auto; flex: 1;">
+            <p class="muted">Loading...</p>
+        </div>
+    </div>
+</div>
 
 <div class="modal-scrim" id="auth-modal-scrim" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
@@ -171,6 +183,7 @@
 
 <script>
     CR.bootAdmin();
+    CR.initBugLog();
 </script>
 
 </body>

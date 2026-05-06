@@ -115,6 +115,7 @@
             <li><button type="button" class="drawer-link" data-action="fit-to-campus">Fit to campus</button></li>
             <li><button type="button" class="drawer-link" data-action="download-data">Download GeoJSON</button></li>
             <li><button type="button" class="drawer-link" data-action="help">Help and tips</button></li>
+            <li><button type="button" class="drawer-link" data-action="report-bug">Report a Bug</button></li>
         </ul>
         <div class="drawer-floating-actions">
             <button type="button" class="drawer-icon-btn" id="drawer-admin-fab" title="<%= isAdmin ? 'Switch account' : 'Admin login' %>">
@@ -137,7 +138,20 @@
     </nav>
     <div class="utility-scrim" id="utility-scrim" aria-hidden="true"></div>
 </main>
-
+<div class="modal-scrim" id="bug-modal-scrim" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-modal-title">
+        <header class="modal-header">
+            <h3 id="bug-modal-title">Report a Bug</h3>
+            <button type="button" class="ghost" id="bug-modal-close">Close</button>
+        </header>
+        <div class="modal-body">
+            <label for="bug-description">Describe the issue</label>
+            <textarea id="bug-description" rows="4" placeholder="e.g. The Humanities building is labelled incorrectly..." style="width:100%; padding: 0.5rem; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; resize: vertical;"></textarea>
+            <p class="muted" id="bug-location-preview" style="font-size: 0.85rem;"></p>
+            <button type="button" class="btn fullwidth" id="bug-submit">Submit Report</button>
+        </div>
+    </div>
+</div>
 <div class="modal-scrim" id="auth-modal-scrim" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
         <header class="modal-header">
@@ -193,6 +207,7 @@
         
         if (CR.initUtilityDrawer) {
             CR.initUtilityDrawer(map);
+            CR.initBugReport(map);
         }
 
         //added click handlers for mobile option boxs JN

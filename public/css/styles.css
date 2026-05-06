@@ -285,7 +285,7 @@ button, .btn{
 .drawer-note{ margin:.2rem 0 0; font-size:.9rem; color: #cfd0d4; }
 .drawer-section{ margin-top:.85rem; }
 .basemap-toggle{
-    display:grid; grid-template-columns: repeat(2, 1fr);
+    display:grid; grid-template-columns: repeat(3, 1fr);
     border:1px solid #2f3238; border-radius:6px; overflow:hidden;
 }
 .basemap-btn{
