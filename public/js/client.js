@@ -50,6 +50,16 @@
                 updateWhenIdle: true
             }
         );
+        const crSat = L.tileLayer("/static/tiles/cr-sat/{z}/{x}/{y}.jpg", {
+            minZoom: 15,
+            maxZoom: 22,
+            maxNativeZoom: 21,
+            bounds: L.latLngBounds([40.6935, -124.2015], [40.7025, -124.1905]),
+            noWrap: true,
+            updateWhenZooming: false,
+            updateWhenIdle: true,
+            errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACw="
+        });
 
 
 
@@ -57,7 +67,8 @@
             current: "paper",
             layers: {
                 paper: osm,
-                satellite: esriSat
+                satellite: esriSat,
+                historic: crSat
             }
         };
 
@@ -65,6 +76,7 @@
         map.addLayer(map._crBase.layers[map._crBase.current]);
         CR.enableTilePrefetch(map, osm);
         CR.enableTilePrefetch(map, esriSat);
+        CR.enableTilePrefetch(map, crSat);
 
         return map;
     }
