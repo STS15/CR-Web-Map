@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
     <!-- trying to fix the mobile responsiveness by adding the following line to the css link JN -->
-    <link rel="stylesheet" href="/static/css/styles.css?v=5">
+    <link rel="stylesheet" href="/static/css/styles.css?v=<%= assetVersion %>">
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-    <script src="/static/js/client.js"></script>
+    <script src="/static/js/client.js?v=<%= assetVersion %>"></script>
 </head>
 <body class="app-shell">
 <header class="appbar">
@@ -47,6 +47,34 @@
 <main class="admin-map-shell">
     <div id="map"></div>
 
+    <!-- Mobile: floating search card -->
+    <div class="mobile-search-overlay" id="mobile-search-overlay">
+        <div class="mobile-search-inputs">
+            <div class="mobile-search-row">
+                <span class="search-dot dot-a"></span>
+                <input type="search" class="mobile-search-input" id="mobile-from-input"
+                       placeholder="From: building, room…" autocomplete="off" />
+            </div>
+            <div class="mobile-search-line"></div>
+            <div class="mobile-search-row">
+                <span class="search-dot dot-b"></span>
+                <input type="search" class="mobile-search-input" id="mobile-to-input"
+                       placeholder="To: building, room…" autocomplete="off" />
+            </div>
+        </div>
+        <div class="mobile-action-col">
+            <button type="button" class="mobile-go-btn" id="mobile-go-btn">Go</button>
+            <button type="button" class="mobile-clear-btn" id="mobile-clear-btn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Mobile: floating basemap toggle -->
+    <div class="mobile-basemap-float" id="mobile-basemap-float">
+        <button type="button" class="mbasemap-btn active" data-base-layer="paper">Paper</button>
+        <button type="button" class="mbasemap-btn" data-base-layer="satellite">Satellite</button>
+        <button type="button" class="mbasemap-btn" data-base-layer="historic">2019</button>
+    </div>
+
     <div class="sidebar" id="route-sidebar">
         <header>
             <h3>Walking directions</h3>
@@ -58,7 +86,7 @@
 
         <!--update the search bar JN -->
         <main>
-            <fieldset>
+            <fieldset id="sidebar-search-fieldset">
                 <legend>Search</legend>
                 <label for="route-start-search">Start (building, room, entrance)</label>
                 <input id="route-start-search" type="search" placeholder="e.g., Humanities, HU-101" autocomplete="off" style="margin-bottom: 0.6rem; width: 100%;" />
@@ -71,7 +99,7 @@
             </fieldset>
             <div class="button-row">
 
-            <fieldset>
+            <fieldset id="sidebar-pick-fieldset">
                 <legend>Pick points</legend>
                 <div class="button-row">
                     <button class="btn" id="route-set-start">Set start</button>
@@ -186,61 +214,26 @@
     </div>
 </div>
 
+<div class="modal-scrim" id="welcome-modal-scrim" aria-hidden="true">
+    <div class="modal welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
+        <header class="modal-header">
+            <h3 id="welcome-modal-title">CR Campus Map</h3>
+        </header>
+        <div class="modal-body">
+            <ul class="welcome-tips">
+                <li><strong>Search</strong> — type a building or room in the search bar to get walking directions.</li>
+                <li><strong>Long-press</strong> the map (or right-click on desktop) to drop a start or destination pin anywhere.</li>
+                <li><strong>Tap a marker</strong> to see building details.</li>
+                <li><strong>Switch views</strong> — use the Paper / Satellite / 2019 buttons to change the base map.</li>
+            </ul>
+            <button type="button" class="btn fullwidth" id="welcome-got-it">Got it</button>
+        </div>
+    </div>
+</div>
+
 <footer class="toasts" id="toasts"></footer>
 
-<script>
-    (async function () {
-        const map = CR.initMap("map");
-        const [features, walkways] = await Promise.all([
-            CR.fetchFeatures(),
-            CR.fetchWalkways()
-        ]);
-
-        //updated to ignore pop ups so buildings could be clicked on for navigation JN
-        const featuresLayer = CR.createFeaturesLayer(features).addTo(map);
-        window.featuresFc = features;
-        // CR.createWalkwaysLayer(walkways).addTo(map); uncommit to add green walkways back to client side JN
-
-        if (CR.initRouting) {
-            CR.initRouting(map, walkways, featuresLayer); // Added featuresLayer here
-        }
-        
-        if (CR.initUtilityDrawer) {
-            CR.initUtilityDrawer(map);
-            CR.initBugReport(map);
-        }
-
-        //added click handlers for mobile option boxs JN
-        // 1. Sidebar Toggle
-        const sidebar = document.getElementById("route-sidebar");
-        const sidebarHeader = sidebar ? sidebar.querySelector("header") : null;
-        
-        if (sidebarHeader) {
-            sidebarHeader.addEventListener("click", (e) => {
-                e.stopPropagation(); // Stop Leaflet from stealing the click
-                sidebar.classList.toggle("expanded");
-            });
-        }
-
-        // 2. Quick Controls Toggle
-        const utilityDrawer = document.getElementById("utility-drawer");
-        const utilityHeader = utilityDrawer ? utilityDrawer.querySelector("header") : null;
-        const utilityCloseBtn = document.getElementById("utility-close");
-
-        if (utilityHeader && utilityCloseBtn) {
-            utilityHeader.addEventListener("click", (e) => {
-                e.stopPropagation();
-                // If they tap the header (but miss the actual close button), close it anyway
-                if (e.target !== utilityCloseBtn) {
-                    utilityCloseBtn.click();
-                }
-            });
-        }
-
-        // Forces Leaflet and the prefetch cache to recognize the new mobile dimensions JN
-        setTimeout(() => { map.invalidateSize(); }, 300);
-    })();
-</script>
+<script src="/static/js/map-init.js?v=<%= assetVersion %>"></script>
 
 </body>
 </html>

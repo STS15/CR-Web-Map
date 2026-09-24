@@ -865,6 +865,8 @@
             if (endSearchInput) endSearchInput.value = "";
         }
 
+        CR.clearRoute = clearRoute;
+
         async function recomputeRoute() {
             if (!startCoord || !endCoord) return;
 
@@ -922,6 +924,17 @@
             }).addTo(mapInst);
 
             mapInst.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+
+            if (window.innerWidth <= 900) {
+                const sidebar = document.getElementById("route-sidebar");
+                if (window.CR && typeof window.CR.sheetSnapTo === "function") {
+                    window.CR.sheetSnapTo(0);
+                } else if (sidebar) {
+                    sidebar.style.removeProperty('transform');
+                    sidebar.style.removeProperty('transition');
+                    sidebar.classList.add("expanded");
+                }
+            }
         }
 
         btnStart.addEventListener("click", function () {
@@ -977,6 +990,39 @@
         mapInst.on("click", function (e) {
             if (!mode) return;
             processRoutingClick(e.latlng);
+        });
+
+        // 2. Long press / right-click → drop-pin popup (Google Maps style)
+        mapInst.on("contextmenu", function (e) {
+            const container = L.DomUtil.create("div", "route-popup");
+
+            const startBtn = L.DomUtil.create("button", "btn", container);
+            startBtn.textContent = "📍 Set as start";
+
+            const endBtn = L.DomUtil.create("button", "btn", container);
+            endBtn.textContent = "🏁 Set destination";
+            endBtn.style.background = "var(--tertiary-color)";
+            endBtn.style.borderColor = "#0e6f64";
+
+            const popup = L.popup({ closeButton: true, className: "route-context-popup" })
+                .setLatLng(e.latlng)
+                .setContent(container)
+                .openOn(mapInst);
+
+            L.DomEvent.on(startBtn, "click", function () {
+                mapInst.closePopup();
+                mode = "start";
+                processRoutingClick(e.latlng);
+                if (window.CR && typeof window.CR.sheetSnapTo === "function") window.CR.sheetSnapTo(55);
+                else { const sb = document.getElementById("route-sidebar"); if (sb) sb.classList.add("expanded"); }
+            });
+            L.DomEvent.on(endBtn, "click", function () {
+                mapInst.closePopup();
+                mode = "end";
+                processRoutingClick(e.latlng);
+                if (window.CR && typeof window.CR.sheetSnapTo === "function") window.CR.sheetSnapTo(55);
+                else { const sb = document.getElementById("route-sidebar"); if (sb) sb.classList.add("expanded"); }
+            });
         });
 
         // 2. Listen for clicks on buildings/rooms
@@ -1220,6 +1266,11 @@ function notifyUser(message) {
                     window.CR.openBugReport();
                 }
             }
+            if (action === "help") {
+                if (window.CR && typeof window.CR.openWelcome === "function") {
+                    window.CR.openWelcome();
+                }
+            }
         });
 
         
@@ -1308,6 +1359,21 @@ function notifyUser(message) {
         }
         mapInst.addLayer(store.layers[name]);
         store.current = name;
+
+        if (mapInst._buildingLabels) {
+            if (name === "satellite" || name === "historic") {
+                mapInst.addLayer(mapInst._buildingLabels);
+            } else {
+                mapInst.removeLayer(mapInst._buildingLabels);
+            }
+        }
+
+        const mobileFloat = document.getElementById('mobile-basemap-float');
+        if (mobileFloat) {
+            mobileFloat.querySelectorAll('[data-base-layer]').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-base-layer') === name);
+            });
+        }
     }
 
     function initBugReport(mapInst) {
@@ -1402,17 +1468,34 @@ function notifyUser(message) {
                     body.innerHTML = "<p class='muted'>No bug reports yet.</p>";
                     return;
                 }
-                body.innerHTML = reports.map(r => `
-                    <div style="border:1px solid #2f3238; border-radius:6px; padding:0.75rem; margin-bottom:0.6rem; background:#22242a;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
-                            <p style="margin:0; color:#f5f5f8;">${r.description}</p>
-                            <button onclick="CR.resolveBug(${r.id}, this)" style="background:#8e001c; border:none; color:#fff; border-radius:4px; padding:0.3rem 0.6rem; cursor:pointer; white-space:nowrap; font-size:0.8rem;">Resolve</button>
-                        </div>
-                        <p style="margin:0.4rem 0 0; font-size:0.8rem; color:#9fa1a8;">
-                            📍 ${r.lat}, ${r.lng} &nbsp;|&nbsp; Zoom ${r.zoom} &nbsp;|&nbsp; ${new Date(r.reported_at).toLocaleString()}
-                        </p>
-                    </div>
-                `).join("");
+                body.innerHTML = "";
+                reports.forEach(r => {
+                    const card = document.createElement("div");
+                    card.style.cssText = "border:1px solid #2f3238; border-radius:6px; padding:0.75rem; margin-bottom:0.6rem; background:#22242a;";
+
+                    const row = document.createElement("div");
+                    row.style.cssText = "display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;";
+
+                    const desc = document.createElement("p");
+                    desc.style.cssText = "margin:0; color:#f5f5f8;";
+                    desc.textContent = r.description;
+
+                    const btn = document.createElement("button");
+                    btn.style.cssText = "background:#8e001c; border:none; color:#fff; border-radius:4px; padding:0.3rem 0.6rem; cursor:pointer; white-space:nowrap; font-size:0.8rem;";
+                    btn.textContent = "Resolve";
+                    btn.addEventListener("click", function () { CR.resolveBug(r.id, btn); });
+
+                    row.appendChild(desc);
+                    row.appendChild(btn);
+
+                    const meta = document.createElement("p");
+                    meta.style.cssText = "margin:0.4rem 0 0; font-size:0.8rem; color:#9fa1a8;";
+                    meta.textContent = `📍 ${r.lat}, ${r.lng} | Zoom ${r.zoom} | ${new Date(r.reported_at).toLocaleString()}`;
+
+                    card.appendChild(row);
+                    card.appendChild(meta);
+                    body.appendChild(card);
+                });
             } catch {
                 body.innerHTML = "<p class='muted'>Failed to load reports.</p>";
             }
